@@ -3,7 +3,7 @@ Private Const mod_name as String = "colorfuncs"
 Private Const module_author as String = "Ben Fisher"
 Private Const module_version as String = "0.0.3"
 
-Public Function rgb_to_hsb(rgb_strin As String) as Variant
+Public Function rgb_to_hsb(rgb_string As String) as Variant
     Dim color_scale As Long: color_scale = 255
     Dim rgb_arr as Variant
     Dim r As Double

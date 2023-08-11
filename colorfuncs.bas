@@ -53,44 +53,6 @@ Public Function rgb_to_hsb(rgb_string As String) as Variant
 
 End Function
 
-Public Function f_func(n As Variant, _
-    hue As Double, _
-    sat As Double, _
-    bright As Double) As Double
-    'Support function for conversion of HSB -> RBG taken from
-    'https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
-
-    Dim k As Double
-    k = (n + hue / 60) Mod 6
-    f_func = bright - bright * sat * WorksheetFunction.Max(0, _
-    WorksheetFunction.Min(k, 4 - k, 1))
-End Function
-
-Public Function hsb_to_rgb_alt(hsb_string As String) As String
-    'Note H is 360 scale, S and V or B on 100 scale.
-    'Function for conversion of HSB -> RBG taken from
-    'https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
-
-    Dim color_scale As Double
-    Dim hue As Double
-    Dim sat As Double
-    Dim bright As Double
-    Dim hsb_arr As Variant
-    Dim rgb_arr As Variant
-
-    hsb_arr = split_hsb_string(hsb_string)
-
-    color_scale = 255
-    hue = hsb_arr(0)
-    sat = hsb_arr(1) / 100
-    bright = hsb_arr(2) / 100
-
-    rgb_arr = Array(f_func(5, hue, sat, bright) * color_scale, _
-        f_func(3, hue, sat, bright) * color_scale, _
-        f_func(4, hue, sat, bright) * color_scale)
-    hsb_to_rgb_alt = rgb_arr
-End Function
-
 Public Function clean_hsb_string(hsb_string As String) As String
     Dim clean_arr As Variant
     Dim arr As Variant
@@ -111,7 +73,7 @@ End Function
 Public Function hsb_to_rgb(hsb_string As String) as String
     'Note H is 360 scale, S and V or B on 100 scale
     
-    Dim color_scale As Long
+    Dim color_scale As Double
     Dim chroma As Double
     Dim x As Double
     Dim m As Double

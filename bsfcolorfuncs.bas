@@ -3,6 +3,9 @@ Private Const mod_name as String = "bsfcolorfuncs"
 Private Const module_author as String = "Ben Fisher"
 Private Const module_version as String = "0.0.1"
 
+Public Const 
+
+
 Public Function rgb_to_hsb(rgb_arr As Variant) as Variant
     Dim color_scale As Long: color_scale = 255
 
@@ -104,8 +107,12 @@ Public Function long_to_rgb(a_long As Long) as Variant
 End Function
 
 Public Function rgb_to_long(rgb_arr As Variant) As Long
+    If TypeName(rgb_arr) = "Range" And rgb_arr.Cells.Count = 1 Then
+        rgb_arr = rgb_string_to_array(rgb_arr)
+    End If
     rgb_to_long = RGB(rgb_arr(0), rgb_arr(1), rgb_arr(2))
 End Function
+
 
 Public Function hex_to_rgb(hex_color As String, Optional as_string as Boolean = True) As Variant
     'Returns a hex color value as an RGB array

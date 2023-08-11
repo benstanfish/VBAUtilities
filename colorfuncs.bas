@@ -50,7 +50,6 @@ Public Function rgb_to_hsb(rgb_string As String) as Variant
     arr(2) = bright
 
     rgb_to_hsb = arr
-
 End Function
 
 Public Function clean_hsb_string(hsb_string As String) As String
@@ -75,6 +74,8 @@ Public Function hsb_to_rgb(hsb_string As String) as String
     
     Dim color_scale As Double
     Dim chroma As Double
+    'The VBA mod function does not really work as expected
+    Dim mod_term as Double
     Dim x As Double
     Dim m As Double
     Dim hsb_arr as Variant
@@ -88,8 +89,8 @@ Public Function hsb_to_rgb(hsb_string As String) as String
     bright = hsb_arr(2) / 100
 
     chroma = bright * sat
-    'x = chroma * (1 - Abs(hue / 60 - Int(hue / 60) - 1))
-    x = chroma * (1 - Abs((hue / 60) mod 2 - 1))
+    mod_term = ((hue / 60) / 2 - Int((hue / 60) / 2)) * 2
+    x = chroma * (1 - Abs(mod_term - 1))
     m = bright - chroma
     
     If hue >= 0 And hue < 60 Then

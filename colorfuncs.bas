@@ -132,6 +132,14 @@ Public Function hex_to_rgb(hex_color As String, Optional as_string as Boolean = 
     hex_to_rgb = rgb_arr
 End Function
 
+
+Public Function clean_color_string(color_string as String) as Variant
+    'Accepts rgb, hex and hsb color strings, cleans the unnecessary
+    'characters out of the string and returns a triplet array.
+    
+End Function
+
+
 Public Function rgb_to_hex(rgb_string As String) As String
     arr = split_rgb_string(rgb_string)
     For i = LBound(arr) To UBound(arr)

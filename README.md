@@ -2,5 +2,14 @@
 
 Personal collection of VBA code modules.
 
-- webcolors: module with the 140 W3 webcolor names as public constants
-- colorfuncs: functions that convert between rgb, hex, hsb and long as well as several contrast functions
+## Color Utilities
+
+The following modules contain several functions related to the use of color in VBA contexts.
+
+#### webcolors
+
+Module containing all (140) W3 webcolor color names as Public Const as **Long** datatypes.
+
+#### colorfuncs
+
+Module containing functions that convert between rgb, hex, hsb and long as well as several contrast functions

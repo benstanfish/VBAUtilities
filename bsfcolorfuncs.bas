@@ -234,7 +234,35 @@ End Function
 
 
 Public Function relative_luminance(rgb_arr as Variant) as Double
+   
 
-    
+End Function
+
+
+
+Function TestA(some_data As Variant)
+    Dim arr As Variant
+    Dim i As Long
+    If TypeName(some_data) = "Range" Then
+        If TestA = some_data.Cells.Count = 1 Then
+            ReDim arr(0)
+            arr(0) = some_data.Value
+        Else
+            ReDim arr(0 To some_data.Rows.Count - 1, _
+                0 To some_data.Columns.Count - 1)
+            For i = 0 To some_data.Rows.Count - 1
+                For j = 0 To some_data.Columns.Count - 1
+                    arr(i, j) = some_data(i + 1, j + 1)
+                Next
+            Next
+        End If
+        For i = 0 To UBound(arr, 1)
+            For j = 0 To UBound(arr, 2)
+                Debug.Print arr(i, j)
+            Next
+        Next
+    ElseIf TypeName(some_data) = "Variant()" Then
+        arr = some_data
+    End If
 
 End Function

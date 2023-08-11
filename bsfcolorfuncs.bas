@@ -161,7 +161,6 @@ End Function
 Public Function apply_contrasting_font_color(background_color As Long)
     'Based on W3.org visibility recommendations:
     'https://www.w3.org/TR/AERT/#color-contrast
-    
     Dim arr As Variant
     Dim color_constant As Long
     Dim color_brightness As Double

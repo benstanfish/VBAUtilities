@@ -1,3 +1,8 @@
+Attribute VB_Name = "webcolors"
+Private Const mod_name as String = "webcolors"
+Private Const module_author as String = "Ben Fisher"
+Private Const module_version as String = "0.0.3"
+
 'Module that contains the 140 named webcolors as Long
 'simply add this module to your project to be able to access
 'the named colors

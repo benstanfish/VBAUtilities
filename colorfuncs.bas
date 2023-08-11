@@ -1,5 +1,5 @@
-Attribute VB_Name = "bsfcolorfuncs"
-Private Const mod_name as String = "bsfcolorfuncs"
+Attribute VB_Name = "colorfuncs"
+Private Const mod_name as String = "colorfuncs"
 Private Const module_author as String = "Ben Fisher"
 Private Const module_version as String = "0.0.3"
 

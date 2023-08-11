@@ -1,14 +1,11 @@
 Attribute VB_Name = "bsfcolorfuncs"
 Private Const mod_name as String = "bsfcolorfuncs"
 Private Const module_author as String = "Ben Fisher"
-Private Const module_version as String = "0.0.1"
+Private Const module_version as String = "0.0.3"
 
-Public Const 
-
-
-Public Function rgb_to_hsb(rgb_arr As Variant) as Variant
+Public Function rgb_to_hsb(rgb_strin As String) as Variant
     Dim color_scale As Long: color_scale = 255
-
+    Dim rgb_arr as Variant
     Dim r As Double
     Dim g As Double
     Dim b As Double
@@ -20,6 +17,8 @@ Public Function rgb_to_hsb(rgb_arr As Variant) as Variant
     Dim hue As Double
     Dim sat As Double
     Dim bright As Double
+
+    rgb_arr = split_rgb_string(rgb_string)
 
     r = rgb_arr(0) / color_scale
     g = rgb_arr(1) / color_scale
@@ -54,17 +53,16 @@ Public Function rgb_to_hsb(rgb_arr As Variant) as Variant
 
 End Function
 
-Public Function hsb_to_rgb(hsb_arr As Variant) as Variant
+Public Function hsb_to_rgb(hsb_arr As Variant) as String
     'Note H is 360 scale, S and V or B on 100 scale
     
-    Dim color_scale As Long: color_scale = 255
-    
+    Dim color_scale As Long
     Dim chroma As Double
     Dim x As Double
     Dim m As Double
-        
     Dim arr(2) As Double
 
+    color_scale = 255
     hue = hsb_arr(0)
     sat = hsb_arr(1) / 100
     bright = hsb_arr(2) / 100
@@ -89,30 +87,28 @@ Public Function hsb_to_rgb(hsb_arr As Variant) as Variant
         arr = Array(0, 0, 0)
     End If
     
-    arr(0) = CLong((arr(0) + m) * color_scale)
-    arr(1) = CLong((arr(1) + m) * color_scale)
-    arr(2) = CLong((arr(2) + m) * color_scale)
+    arr(0) = CLng((arr(0) + m) * color_scale)
+    arr(1) = CLng((arr(1) + m) * color_scale)
+    arr(2) = CLng((arr(2) + m) * color_scale)
     
-    hsb_to_rgb = arr
+    hsb_to_rgb = Join(arr, ", ")
 End Function
 
-Public Function long_to_rgb(a_long As Long) as Variant
+Public Function long_to_rgb(a_long As Long) as String
     Dim r, g, b as Double
     Dim arr(0 To 2) as Long
     b = a_long \ 65536
     g = (a_long - b * 65536) \ 256
     r = a_long - b * 65536 - g * 256
     arr(0) = r: arr(1) = g: arr(2) = b
-    long_to_rgb = arr
+    long_to_rgb = Join(arr, ", ")
 End Function
 
-Public Function rgb_to_long(rgb_arr As Variant) As Long
-    If TypeName(rgb_arr) = "Range" And rgb_arr.Cells.Count = 1 Then
-        rgb_arr = rgb_string_to_array(rgb_arr)
-    End If
+Public Function rgb_to_long(rgb_string as String) As Long
+    Dim rgb_arr as Variant
+    rgb_arr = split_rgb_string(rgb_string)
     rgb_to_long = RGB(rgb_arr(0), rgb_arr(1), rgb_arr(2))
 End Function
-
 
 Public Function hex_to_rgb(hex_color As String, Optional as_string as Boolean = True) As Variant
     'Returns a hex color value as an RGB array
@@ -136,70 +132,31 @@ Public Function hex_to_rgb(hex_color As String, Optional as_string as Boolean = 
     hex_to_rgb = rgb_arr
 End Function
 
-Public Function rgb_string_to_array(rgb_string as Variant)
-    'This is a helper-function that cleans up RGB strings 
-    'and converts them to an RGB array.
-    Dim rgb_arr As Variant
-    Dim clean_arr As Variant
-    Dim clean_str As String
-    clean_arr = Array("(", ")", " ", "r", "g", "b", "=")
-    For i = 0 To UBound(clean_arr)
-        rgb_string = Replace(rgb_string, clean_arr(i), "")
-    Next
-    rgb_arr = Split(rgb_string, ",")
-    For i = LBound(rgb_arr) To UBound(rgb_arr)
-        rgb_arr(i) = CLng(rgb_arr(i))
-    Next
-    rgb_string_to_array = rgb_arr
-End Function
-
-Public Function is_rgb_string(rgb_test as Variant) as Boolean
-    On Error Goto dump
-    If Len(Replace(rgb_test, ",", "")) < Len(rgb_test) Then rgb_test = True
-dump:
-End Function
-
-Public Function rgb_to_hex(rgb_arr As Variant) As String
-    'Can accept triplet-like strings, VBA arrays or Excel ranges of 3 values
-    Dim arr As Variant
-    If is_rgb_string(rgb_arr) = True Then
-        arr = rgb_string_to_array(rgb_arr)
-        For i = LBound(arr) To UBound(arr)
-            arr(i) = WorksheetFunction.Dec2Hex(arr(i))
-            If Len(arr(i)) < 2 Then arr(i) = "0" & arr(i)
-        Next
-    Else
-        ReDim arr(2)
-        If TypeName(rgb_arr) = "Range" Then
-            'Assumes Excel range vector (row or column) of 3 values
-            For i = 0 To 2
-                arr(i) = CLng(rgb_arr(i + 1))
-                arr(i) = WorksheetFunction.Dec2Hex(arr(i))
-                If Len(arr(i)) < 2 Then arr(i) = "0" & arr(i)
-            Next
-        Else
-            'Assumes VBA array
-            For i = 0 To 2
-                arr(i) = CLng(rgb_arr(i))
-                arr(i) = WorksheetFunction.Dec2Hex(arr(i))
-                If Len(arr(i)) < 2 Then arr(i) = "0" & arr(i)
-            Next
-        End If
-    End If
-    rgb_to_hex = "#" & Join(arr, "")
-End Function
-
-Public Function rgb_to_hex2(rgb_arr As Variant) As String
-    'Can accept triplet-like strings, VBA arrays or Excel ranges of 3 values
-    Dim arr As Variant
-    arr = rgb_to_array(rgb_arr)
+Public Function rgb_to_hex(rgb_string As String) As String
+    arr = split_rgb_string(rgb_string)
     For i = LBound(arr) To UBound(arr)
         arr(i) = WorksheetFunction.Dec2Hex(arr(i))
         If Len(arr(i)) < 2 Then arr(i) = "0" & arr(i)
     Next
-    rgb_to_hex2 = "#" & Join(arr, "")
+    rgb_to_hex = "#" & Join(arr, "")
 End Function
 
+Public Function clean_rgb_string(rgb_string As String) As String
+    Dim clean_arr As Variant
+    Dim arr As Variant
+    Dim i As Long
+    clean_arr = Array("(", ")", " ", "r", "g", "b", "=")
+    For i = LBound(clean_arr) To UBound(clean_arr)
+        rgb_string = Replace(rgb_string, clean_arr(i), "")
+    Next
+    clean_rgb_string = rgb_string
+End Function
+
+Public Function split_rgb_string(rgb_string As String) As Variant
+    Dim rgb_arr As Variant
+    rgb_arr = Split(clean_rgb_string(rgb_string), ",")
+    split_rgb_string = rgb_arr
+End Function
 
 Public Function apply_contrasting_font_color(background_color As Long)
     'Based on W3.org visibility recommendations:
@@ -216,60 +173,29 @@ Public Function apply_contrasting_font_color(background_color As Long)
     apply_contrasting_font_color = color_constant    
 End Function
 
-Public Function rgb_to_array(rgb_like as Variant)
-    'Converts triplet-like strings, VBA arrays or Excel ranges of 3 values
-    'and returns a VBA array of 3 values
-    Dim arr As Variant
-    If is_rgb_string(rgb_like) = True Then
-        arr = rgb_string_to_array(rgb_like)
+Public Function relative_luminance(rgb_string As String)
+    Dim arr(2)
+    rbg_arr = split_rgb_string(rgb_string)
+    For i = 0 To 2
+        arr(i) = rbg_arr(i) / 255
+        If arr(i) <= 0.03928 Then arr(i) = arr(i) / 12.92 Else arr(i) = ((arr(i) + 0.055) / 1.055) ^ 2.4
+    Next
+    relative_luminance = 0.2126 * arr(0) + 0.7152 * arr(1) + 0.0722 * arr(2)
+End Function
+
+Public Function contrast_ratio(rgb_color_1 As String, rbg_color_2 As String) As Double
+    Dim lum_1 As Double
+    Dim lum_2 As Double
+    Dim lum_min As Double
+    Dim lum_max As Double
+    lum_1 = relative_luminance(rgb_color_1)
+    lum_2 = relative_luminance(rbg_color_2)
+    If lum_1 > lum_2 Then
+        lum_max = lum_1
+        lum_min = lum_2
     Else
-        ReDim arr(2)
-        If TypeName(rgb_like) = "Range" Then
-            'Assumes Excel range vector (row or column) of 3 values
-            For i = 0 To 2
-                arr(i) = CLng(rgb_like(i + 1))
-            Next
-        Else
-            'Assumes VBA array
-            For i = 0 To 2
-                arr(i) = CLng(rgb_like(i))
-            Next
-        End If
+        lum_max = lum_2
+        lum_min = lum_1
     End If
-    rgb_to_array = arr
-End Function
-
-
-Public Function relative_luminance(rgb_arr as Variant) as Double
-   
-
-End Function
-
-
-
-Function TestA(some_data As Variant)
-    Dim arr As Variant
-    Dim i As Long
-    If TypeName(some_data) = "Range" Then
-        If TestA = some_data.Cells.Count = 1 Then
-            ReDim arr(0)
-            arr(0) = some_data.Value
-        Else
-            ReDim arr(0 To some_data.Rows.Count - 1, _
-                0 To some_data.Columns.Count - 1)
-            For i = 0 To some_data.Rows.Count - 1
-                For j = 0 To some_data.Columns.Count - 1
-                    arr(i, j) = some_data(i + 1, j + 1)
-                Next
-            Next
-        End If
-        For i = 0 To UBound(arr, 1)
-            For j = 0 To UBound(arr, 2)
-                Debug.Print arr(i, j)
-            Next
-        Next
-    ElseIf TypeName(some_data) = "Variant()" Then
-        arr = some_data
-    End If
-
+    contrast_ratio = (lum_max + 0.05) / (lum_min + 0.05)
 End Function

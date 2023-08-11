@@ -1,4 +1,6 @@
 'Module that contains the 140 named webcolors as Long
+'simply add this module to your project to be able to access
+'the named colors
 
 'Pink colors
 Public Const mediumvioletred as Long = 8721863

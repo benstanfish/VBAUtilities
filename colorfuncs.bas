@@ -88,7 +88,8 @@ Public Function hsb_to_rgb(hsb_string As String) as String
     bright = hsb_arr(2) / 100
 
     chroma = bright * sat
-    x = chroma * (1 - Abs(hue / 60 - Int(hue / 60) - 1))
+    'x = chroma * (1 - Abs(hue / 60 - Int(hue / 60) - 1))
+    x = chroma * (1 - Abs((hue / 60) mod 2 - 1))
     m = bright - chroma
     
     If hue >= 0 And hue < 60 Then

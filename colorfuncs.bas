@@ -45,9 +45,9 @@ Public Function rgb_to_hsb(rgb_string As String) as Variant
     
     bright = c_max * 100
     
-    arr(0) = CLng(hue)
-    arr(1) = sat
-    arr(2) = bright
+    arr(0) = Round(hue, 3)
+    arr(1) = Round(sat, 3)
+    arr(2) = Round(bright, 3)
 
     rgb_to_hsb = arr
 End Function

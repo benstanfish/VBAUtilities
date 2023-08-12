@@ -3,7 +3,9 @@ Private Const mod_name as String = "colorfuncs"
 Private Const module_author as String = "Ben Fisher"
 Private Const module_version as String = "0.0.3"
 
-Public Function rgb_to_hsb(rgb_string As String) as Variant
+Public Function rgb_to_hsb(ByVal rgb_string As String) as Variant
+    'Note that pure white and black return errors
+
     Dim color_scale As Long: color_scale = 255
     Dim rgb_arr as Variant
     Dim r As Double
@@ -52,7 +54,7 @@ Public Function rgb_to_hsb(rgb_string As String) as Variant
     rgb_to_hsb = arr
 End Function
 
-Public Function clean_hsb_string(hsb_string As String) As String
+Public Function clean_hsb_string(ByVal hsb_string As String) As String
     Dim clean_arr As Variant
     Dim arr As Variant
     Dim i As Long
@@ -63,15 +65,16 @@ Public Function clean_hsb_string(hsb_string As String) As String
     clean_hsb_string = hsb_string
 End Function
 
-Public Function split_hsb_string(hsb_string As String) As Variant
+Public Function split_hsb_string(ByVal hsb_string As String) As Variant
     Dim hsb_arr As Variant
     hsb_arr = Split(clean_hsb_string(hsb_string), ",")
     split_hsb_string = hsb_arr
 End Function
 
-Public Function hsb_to_rgb(hsb_string As String) as String
+Public Function hsb_to_rgb(ByVal hsb_string As String) as String
     'Note H is 360 scale, S and V or B on 100 scale
-    
+    'Note that pure white and black return errors
+
     Dim color_scale As Double
     Dim chroma As Double
     'The VBA mod function does not really work as expected
@@ -116,9 +119,9 @@ Public Function hsb_to_rgb(hsb_string As String) as String
     hsb_to_rgb = Join(arr, ", ")
 End Function
 
-Public Function long_to_rgb(a_long As Long) as String
+Public Function long_to_rgb(ByVal a_long As Long) as String
     Dim r, g, b as Double
-    Dim arr(0 To 2) as Long
+    Dim arr(2) as Variant
     b = a_long \ 65536
     g = (a_long - b * 65536) \ 256
     r = a_long - b * 65536 - g * 256
@@ -126,20 +129,23 @@ Public Function long_to_rgb(a_long As Long) as String
     long_to_rgb = Join(arr, ", ")
 End Function
 
-Public Function rgb_to_long(rgb_string as String) As Long
+Public Function rgb_to_long(ByVal rgb_string as String) As Long
     Dim rgb_arr as Variant
     rgb_arr = split_rgb_string(rgb_string)
     rgb_to_long = RGB(rgb_arr(0), rgb_arr(1), rgb_arr(2))
 End Function
 
-Public Function hex_to_rgb(hex_color As String, Optional as_string as Boolean = True) As Variant
+Public Function hex_to_rgb(ByVal hex_color As String, Optional as_string As Boolean = True) As Variant
     'Returns a hex color value as an RGB array
     'Several prefixes are used to identify hex numbers: "&H" is used
     'in VBA, however, "#" is used for webcolors, also "0h" or "0x"
     'are sometimes used as well.
-    Dim remove_characters, rgb_arr As Variant
+    Dim remove_characters As Variant
+    Dim rgb_arr As Variant
     Dim i As Long
-    Dim r, g, b As String
+    Dim r As Variant
+    Dim g As Variant
+    Dim b As Variant
     remove_characters = Array("&H", "&h", "#", "0H", "0h", "0X", "0x")
     For i = LBound(remove_characters) To UBound(remove_characters)
         hex_color = Replace(hex_color, remove_characters(i), "")
@@ -150,19 +156,12 @@ Public Function hex_to_rgb(hex_color As String, Optional as_string as Boolean = 
     rgb_arr = Array(WorksheetFunction.Hex2Dec(r), _
                         WorksheetFunction.Hex2Dec(g), _
                         WorksheetFunction.Hex2Dec(b))
-    If as_string = True Then rgb_arr =  JOIN(rgb_arr, ", ")
+    If as_string = True Then rgb_arr = Join(rgb_arr, ", ")
     hex_to_rgb = rgb_arr
 End Function
 
 
-Public Function clean_color_string(color_string as String) as Variant
-    'Accepts rgb, hex and hsb color strings, cleans the unnecessary
-    'characters out of the string and returns a triplet array.
-
-End Function
-
-
-Public Function rgb_to_hex(rgb_string As String) As String
+Public Function rgb_to_hex(ByVal rgb_string As String) As String
     arr = split_rgb_string(rgb_string)
     For i = LBound(arr) To UBound(arr)
         arr(i) = WorksheetFunction.Dec2Hex(arr(i))
@@ -171,7 +170,7 @@ Public Function rgb_to_hex(rgb_string As String) As String
     rgb_to_hex = "#" & Join(arr, "")
 End Function
 
-Public Function clean_rgb_string(rgb_string As String) As String
+Public Function clean_rgb_string(ByVal rgb_string As String) As String
     Dim clean_arr As Variant
     Dim arr As Variant
     Dim i As Long
@@ -184,20 +183,21 @@ End Function
 
 
 
-Public Function split_rgb_string(rgb_string As String) As Variant
+Public Function split_rgb_string(ByVal rgb_string As String) As Variant
     Dim rgb_arr As Variant
     rgb_arr = Split(clean_rgb_string(rgb_string), ",")
     split_rgb_string = rgb_arr
 End Function
 
-Public Function apply_contrasting_font_color(background_color As Long)
+Public Function apply_contrasting_font_color(ByVal background_color As Long)
     'Based on W3.org visibility recommendations:
     'https://www.w3.org/TR/AERT/#color-contrast
     Dim arr As Variant
     Dim color_constant As Long
     Dim color_brightness As Double
     
-    arr = long_to_rgb(background_color)
+    rgb_string = long_to_rgb(background_color)
+    arr = split_rgb_string(rgb_string)
     color_brightness = (0.299 * arr(0) + 0.587 * arr(1) + 0.114 * arr(2)) / 255
     If color_brightness > 0.55 Then color_constant = vbBlack Else color_constant = vbWhite
 
@@ -214,13 +214,13 @@ Public Function relative_luminance(rgb_string As String)
     relative_luminance = 0.2126 * arr(0) + 0.7152 * arr(1) + 0.0722 * arr(2)
 End Function
 
-Public Function contrast_ratio(rgb_color_1 As String, rbg_color_2 As String) As Double
+Public Function contrast_ratio(rgb_string_1 As String, rgb_string_2 As String) As Double
     Dim lum_1 As Double
     Dim lum_2 As Double
     Dim lum_min As Double
     Dim lum_max As Double
-    lum_1 = relative_luminance(rgb_color_1)
-    lum_2 = relative_luminance(rbg_color_2)
+    lum_1 = relative_luminance(rgb_string_1)
+    lum_2 = relative_luminance(rgb_string_2)
     If lum_1 > lum_2 Then
         lum_max = lum_1
         lum_min = lum_2
@@ -229,4 +229,85 @@ Public Function contrast_ratio(rgb_color_1 As String, rbg_color_2 As String) As 
         lum_min = lum_1
     End If
     contrast_ratio = (lum_max + 0.05) / (lum_min + 0.05)
+End Function
+
+Public Function get_hue(rgb_string As String) As Double
+    'Returns the hue in degrees, where Red is 0.
+    get_hue = rgb_to_hsb(rgb_string)(0)
+End Function
+
+Public Function get_saturation(rgb_string As String) As Double
+    'Returns the saturation as a value between 0 (white) to 1 (color saturation)
+    get_saturation = rgb_to_hsb(rgb_string)(1) / 100
+End Function
+
+Public Function get_brightness(rgb_string As String) As Double
+    'Returns the brightness as a value between 0 (black) to 1 (brightness)
+    get_brightness = rgb_to_hsb(rgb_string)(2) / 100
+End Function
+
+Public Sub color_selection_rgb()
+    'Helper function for coloring Excel cells that contain an RGB code
+    Dim rgb_string As String
+    For Each a_cell In Selection.Cells
+        rgb_string = a_cell.Value
+        back_color = rgb_to_long(rgb_string)
+        font_color = apply_contrasting_font_color(back_color)
+        With a_cell
+            .Interior.Color = back_color
+            .Font.Color = font_color
+        End With
+    Next
+End Sub
+
+Public Sub color_selection_hex()
+    'Helper function for coloring Excel cells that contain an Hex code
+    Dim hex_string As String
+    For Each a_cell In Selection.Cells
+        hex_string = a_cell.Value
+        back_color = rgb_to_long(hex_to_rgb(hex_string))
+        font_color = apply_contrasting_font_color(back_color)
+        With a_cell
+            .Interior.Color = back_color
+            .Font.Color = font_color
+        End With
+    Next
+End Sub
+
+Public Sub color_selection_hsb()
+    'Helper function for coloring Excel cells that contain an HSB code
+    Dim hsb_string As String
+    For Each a_cell In Selection.Cells
+        hsb_string = a_cell.Value
+        back_color = rgb_to_long(hsb_to_rgb(hsb_string))
+        font_color = apply_contrasting_font_color(back_color)
+        With a_cell
+            .Interior.Color = back_color
+            .Font.Color = font_color
+        End With
+    Next
+End Sub
+
+Public Sub reset_selection_color()
+    'Helper function to undo the coloring of selected cells in Excel.
+    With Selection
+        With .Interior
+            .ColorIndex = xlAutomatic
+            .Pattern = xlNone
+        End With
+        .Font.ColorIndex = xlAutomatic
+    End With
+End Sub
+
+
+Public Function get_rgb_complement(ByVal rgb_string As String)
+    Dim hsb_arr As Variant
+    Dim comp_arr(2) As Variant
+    
+    hsb_arr = rgb_to_hsb(rgb_string)
+    For i = 0 To 2
+        comp_arr(i) = hsb_arr(i)
+    Next
+    comp_arr(0) = (comp_arr(0) + 180) Mod 360
+    get_rgb_complement = hsb_to_rgb(Join(comp_arr, ", "))
 End Function

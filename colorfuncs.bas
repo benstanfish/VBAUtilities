@@ -330,7 +330,7 @@ Public Function get_split_complement(ByVal rgb_string as String)
     hsb_arr2 = (hsb_arr2(0) + 210) mod 360
     ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
     ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
-    get_triad = ret_arr
+    get_split_complement = ret_arr
 End Function
 
 Public Function get_analogous(ByVal rgb_string as String)
@@ -343,10 +343,10 @@ Public Function get_analogous(ByVal rgb_string as String)
     hsb_arr2 = (hsb_arr2(0) - 30) mod 360
     ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
     ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
-    get_triad = ret_arr
+    get_analogous = ret_arr
 End Function
 
-Public Function get_tetradic(ByVal rgb_string as String, rotate_CW as Boolean = True)
+Public Function get_tetradic(ByVal rgb_string as String, Optional rotate_CW as Boolean = True)
     Dim hsb_arr1 As Variant
     Dim hsb_arr2 As Variant
     Dim hsb_arr3 As Variant
@@ -362,7 +362,7 @@ Public Function get_tetradic(ByVal rgb_string as String, rotate_CW as Boolean = 
     ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
     ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
     ret_arr(2) = hsb_to_rgb(Join(hsb_arr3, ", "))
-    get_triad = ret_arr
+    get_tetradic = ret_arr
 End Function
 
 Public Function get_square(ByVal rgb_string as String)
@@ -381,5 +381,5 @@ Public Function get_square(ByVal rgb_string as String)
     ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
     ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
     ret_arr(2) = hsb_to_rgb(Join(hsb_arr3, ", "))
-    get_triad = ret_arr
+    get_square = ret_arr
 End Function

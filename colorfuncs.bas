@@ -300,14 +300,86 @@ Public Sub reset_selection_color()
 End Sub
 
 
-Public Function get_rgb_complement(ByVal rgb_string As String)
-    Dim hsb_arr As Variant
-    Dim comp_arr(2) As Variant
-    
+Public Function get_complement(ByVal rgb_string As String)
+    Dim hsb_arr As Variant   
     hsb_arr = rgb_to_hsb(rgb_string)
-    For i = 0 To 2
-        comp_arr(i) = hsb_arr(i)
-    Next
-    comp_arr(0) = (comp_arr(0) + 180) Mod 360
-    get_rgb_complement = hsb_to_rgb(Join(comp_arr, ", "))
+    hsb_arr(0) = (hsb_arr(0) + 180) Mod 360
+    get_complement = hsb_to_rgb(Join(hsb_arr, ", "))
+End Function
+
+Public Function get_triad(ByVal rgb_string as String)
+    Dim hsb_arr1 As Variant
+    Dim hsb_arr2 As Variant
+    Dim ret_arr(1) as String
+    hsb_arr1 = rgb_to_hsb(rgb_string)
+    hsb_arr2 = rgb_to_hsb(rgb_string)
+    hsb_arr1 = (hsb_arr1(0) + 120) mod 360
+    hsb_arr2 = (hsb_arr2(0) + 240) mod 360
+    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
+    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
+    get_triad = ret_arr
+End Function
+
+Public Function get_split_complement(ByVal rgb_string as String)
+    Dim hsb_arr1 As Variant
+    Dim hsb_arr2 As Variant
+    Dim ret_arr(1) as String
+    hsb_arr1 = rgb_to_hsb(rgb_string)
+    hsb_arr2 = rgb_to_hsb(rgb_string)
+    hsb_arr1 = (hsb_arr1(0) + 150) mod 360
+    hsb_arr2 = (hsb_arr2(0) + 210) mod 360
+    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
+    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
+    get_triad = ret_arr
+End Function
+
+Public Function get_analogous(ByVal rgb_string as String)
+    Dim hsb_arr1 As Variant
+    Dim hsb_arr2 As Variant
+    Dim ret_arr(1) as String
+    hsb_arr1 = rgb_to_hsb(rgb_string)
+    hsb_arr2 = rgb_to_hsb(rgb_string)
+    hsb_arr1 = (hsb_arr1(0) + 30) mod 360
+    hsb_arr2 = (hsb_arr2(0) - 30) mod 360
+    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
+    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
+    get_triad = ret_arr
+End Function
+
+Public Function get_tetradic(ByVal rgb_string as String, rotate_CW as Boolean = True)
+    Dim hsb_arr1 As Variant
+    Dim hsb_arr2 As Variant
+    Dim hsb_arr3 As Variant
+    Dim rotation_coeff As Integer
+    Dim ret_arr(2) as String
+    hsb_arr1 = rgb_to_hsb(rgb_string)
+    hsb_arr2 = rgb_to_hsb(rgb_string)
+    hsb_arr3 = rgb_to_hsb(rgb_string)
+    if rotate_CW = True then rotation_coeff = 1 Else rotation_coeff = -1
+    hsb_arr1 = (hsb_arr1(0) + rotation_coeff * 60) mod 360
+    hsb_arr2 = (hsb_arr2(0) + rotation_coeff * 180) mod 360
+    hsb_arr3 = (hsb_arr1(0) + rotation_coeff * 240) mod 360
+    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
+    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
+    ret_arr(2) = hsb_to_rgb(Join(hsb_arr3, ", "))
+    get_triad = ret_arr
+End Function
+
+Public Function get_square(ByVal rgb_string as String)
+    Dim hsb_arr1 As Variant
+    Dim hsb_arr2 As Variant
+    Dim hsb_arr3 As Variant
+    Dim rotation_coeff As Integer
+    Dim ret_arr(2) as String
+    hsb_arr1 = rgb_to_hsb(rgb_string)
+    hsb_arr2 = rgb_to_hsb(rgb_string)
+    hsb_arr3 = rgb_to_hsb(rgb_string)
+    if rotate_CW = True then rotation_coeff = 1 Else rotation_coeff = -1
+    hsb_arr1 = (hsb_arr1(0) + rotation_coeff * 90) mod 360
+    hsb_arr2 = (hsb_arr2(0) + rotation_coeff * 180) mod 360
+    hsb_arr3 = (hsb_arr1(0) + rotation_coeff * 270) mod 360
+    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
+    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
+    ret_arr(2) = hsb_to_rgb(Join(hsb_arr3, ", "))
+    get_triad = ret_arr
 End Function

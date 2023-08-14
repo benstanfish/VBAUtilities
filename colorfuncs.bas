@@ -57,6 +57,102 @@ Public Function rgb_to_hsl(ByVal rgb_string As String) As Variant
     End If
 End Function
 
+Public Function hsl_to_rgb(ByVal hsl_string As String) As String
+    'Note H is 360 scale, S and V or B on 100 scale
+    'Note that pure white and black return errors
+
+    Dim color_scale As Double
+    Dim chroma As Double
+    'The VBA mod function does not really work as expected
+    Dim mod_term As Double
+    Dim x As Double
+    Dim m As Double
+    Dim hsb_arr As Variant
+    Dim arr As Variant
+
+    hsl_arr = split_hsb_string(hsl_string)
+
+    color_scale = 255
+    hue = hsl_arr(0)
+    sat = hsl_arr(1) / 100
+    light = hsl_arr(2) / 100
+
+    chroma = (1 - Abs(2 * light - 1)) * sat
+    mod_term = ((hue / 60) / 2 - Int((hue / 60) / 2)) * 2
+    x = chroma * (1 - Abs(mod_term - 1))
+    m = light - chroma / 2
+    
+    If hue >= 0 And hue < 60 Then
+        arr = Array(chroma, x, 0)
+    ElseIf hue >= 60 And hue < 120 Then
+        arr = Array(x, chroma, 0)
+    ElseIf hue >= 120 And hue < 180 Then
+        arr = Array(0, chroma, x)
+    ElseIf hue >= 180 And hue < 240 Then
+        arr = Array(0, x, chroma)
+    ElseIf hue >= 240 And hue < 300 Then
+        arr = Array(x, 0, chroma)
+    ElseIf hue >= 300 And hue < 360 Then
+        arr = Array(chroma, 0, x)
+    Else
+        arr = Array(0, 0, 0)
+    End If
+    
+    arr(0) = CLng((arr(0) + m) * color_scale)
+    arr(1) = CLng((arr(1) + m) * color_scale)
+    arr(2) = CLng((arr(2) + m) * color_scale)
+    
+    hsl_to_rgb = Join(arr, ", ")
+End Function
+
+Public Function hsb_to_hsl(ByVal hsb_string As String)
+    'TODO: Still needs a little work
+    
+    Dim arr(2) As Variant
+    hsb_arr = split_hsb_string(hsb_string)
+    
+    hue = hsb_arr(0)
+    sat_hsb = hsb_arr(1) / 100
+    bright = hsb_arr(2) / 100
+    
+    light = bright * (1 - sat_hsb / 2)
+    
+    If light = 0 Or light = 1 Then
+        sat_hsl = 0
+    Else
+        sat_hsl = (bright - light) / WorksheetFunction.Min(light, 1 - light)
+    End If
+    arr(0) = Round(hue, 3)
+    arr(1) = Round(sat_hsl * 100, 3)
+    arr(2) = Round(light * 100, 3)
+    
+    hsb_to_hsl = Join(arr, ", ")
+    
+End Function
+
+Public Function hsl_to_hsb(ByVal hsl_string As String)
+    'TODO: Still needs a little work
+    
+    Dim arr(2) As Variant
+    hsl_arr = split_hsb_string(hsl_string)
+    
+    hue = hsl_arr(0)
+    sat_hsl = hsl_arr(1) / 100
+    lum = hsl_arr(2) / 100
+    bright = lum + hsl_arr(1) * WorksheetFunction.Min(lum, 1 - lum)
+    
+    If bright = 0 Then
+        sat_hsb = 0
+    Else
+        sat_hsb = 2 * (1 - lum / bright)
+    End If
+    arr(0) = Round(hue, 3)
+    arr(1) = Round(sat_hsb * 100, 3)
+    arr(2) = Round(lum * 100, 3)
+    
+    hsl_to_hsb = Join(arr, ", ")
+End Function
+    
 Public Function rgb_to_hsb(ByVal rgb_string As String) As Variant
     'Note that pure white and black return errors
 
@@ -111,23 +207,6 @@ Public Function rgb_to_hsb(ByVal rgb_string As String) As Variant
     rgb_to_hsb = arr
 End Function
 
-Public Function clean_hsb_string(ByVal hsb_string As String) As String
-    Dim clean_arr As Variant
-    Dim arr As Variant
-    Dim i As Long
-    clean_arr = Array("(", ")", " ", "h", "s", "b", "v", "=", "deg", "°", "%")
-    For i = LBound(clean_arr) To UBound(clean_arr)
-        hsb_string = Replace(hsb_string, clean_arr(i), "")
-    Next
-    clean_hsb_string = hsb_string
-End Function
-
-Public Function split_hsb_string(ByVal hsb_string As String) As Variant
-    Dim hsb_arr As Variant
-    hsb_arr = Split(clean_hsb_string(hsb_string), ",")
-    split_hsb_string = hsb_arr
-End Function
-
 Public Function hsb_to_rgb(ByVal hsb_string As String) as String
     'Note H is 360 scale, S and V or B on 100 scale
     'Note that pure white and black return errors
@@ -175,6 +254,25 @@ Public Function hsb_to_rgb(ByVal hsb_string As String) as String
     
     hsb_to_rgb = Join(arr, ", ")
 End Function
+
+Public Function clean_hsb_string(ByVal hsb_string As String) As String
+    Dim clean_arr As Variant
+    Dim arr As Variant
+    Dim i As Long
+    clean_arr = Array("(", ")", " ", "h", "s", "b", "v", "=", "deg", "°", "%")
+    For i = LBound(clean_arr) To UBound(clean_arr)
+        hsb_string = Replace(hsb_string, clean_arr(i), "")
+    Next
+    clean_hsb_string = hsb_string
+End Function
+
+Public Function split_hsb_string(ByVal hsb_string As String) As Variant
+    Dim hsb_arr As Variant
+    hsb_arr = Split(clean_hsb_string(hsb_string), ",")
+    split_hsb_string = hsb_arr
+End Function
+
+
 
 Public Function long_to_rgb(ByVal a_long As Long) as String
     Dim r, g, b as Double

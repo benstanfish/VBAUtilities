@@ -150,7 +150,8 @@ Public Function hsl_to_hsb(ByVal hsl_string As String)
 End Function
     
 Public Function rgb_to_hsb(ByVal rgb_string As String) As Variant
-    'Note that pure white and black return errors
+    'Note that pure white and black return errors if they are not
+    'entered in as strings, rather then general/numeric
 
     Dim color_scale As Long: color_scale = 255
     Dim rgb_arr As Variant
@@ -205,7 +206,8 @@ End Function
 
 Public Function hsb_to_rgb(ByVal hsb_string As String) as String
     'Note H is 360 scale, S and V or B on 100 scale
-    'Note that pure white and black return errors
+    'Note that pure white and black return errors if they are not
+    'entered in as strings, rather then general/numeric
 
     Dim color_scale As Double
     Dim chroma As Double

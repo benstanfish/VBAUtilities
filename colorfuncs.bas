@@ -3,11 +3,65 @@ Private Const mod_name as String = "colorfuncs"
 Private Const module_author as String = "Ben Fisher"
 Private Const module_version as String = "0.0.3"
 
-Public Function rgb_to_hsb(ByVal rgb_string As String) as Variant
+Public Function rgb_to_hsl(ByVal rgb_string As String) As Variant
     'Note that pure white and black return errors
 
     Dim color_scale As Long: color_scale = 255
-    Dim rgb_arr as Variant
+    Dim rgb_arr As Variant
+    Dim r As Double
+    Dim g As Double
+    Dim b As Double
+    Dim c_max As Double
+    Dim c_min As Double
+    Dim c_delta As Double
+    Dim c_avg As Double
+    Dim arr(2) As Double
+
+    Dim hue As Double
+    Dim sat As Double
+    Dim light As Double
+
+    rgb_arr = split_rgb_string(rgb_string)
+
+    r = rgb_arr(0) / color_scale
+    g = rgb_arr(1) / color_scale
+    b = rgb_arr(2) / color_scale
+    
+    c_max = WorksheetFunction.Max(r, g, b)
+    c_min = WorksheetFunction.Min(r, g, b)
+    c_delta = c_max - c_min
+    
+    If c_delta = 0 Then
+        arr(0) = 0
+        arr(1) = 0
+        arr(2) = c_max
+        rgb_to_hsl = arr
+    Else
+        light = (c_max + c_min) / 2
+        If c_max = r And g >= b Then
+            hue = 60 * (g - b) / c_delta
+        ElseIf c_max = r And g < b Then
+            hue = 60 * (g - b) / c_delta + 360
+        ElseIf c_max = g Then
+            hue = 60 * (b - r) / c_delta + 120
+        ElseIf c_max = b Then
+            hue = 60 * (r - g) / c_delta + 240
+        Else
+            hue = 0
+        End If
+        If c_max = 0 Then sat = 0 Else sat = c_delta / c_max
+        arr(0) = hue
+        arr(1) = sat
+        arr(2) = light
+        rgb_to_hsl = arr
+    End If
+End Function
+
+Public Function rgb_to_hsb(ByVal rgb_string As String) As Variant
+    'Note that pure white and black return errors
+
+    Dim color_scale As Long: color_scale = 255
+    Dim rgb_arr As Variant
     Dim r As Double
     Dim g As Double
     Dim b As Double
@@ -31,25 +85,28 @@ Public Function rgb_to_hsb(ByVal rgb_string As String) as Variant
     
     c_delta = c_max - c_min
     
-    If c_max = r And g >= b Then
-        hue = 60 * (g - b) / c_delta
-    ElseIf c_max = r And g < b Then
-        hue = 60 * (g - b) / c_delta + 360
-    ElseIf c_max = g Then
-        hue = 60 * (b - r) / c_delta + 120
-    ElseIf c_max = b Then
-        hue = 60 * (r - g) / c_delta + 240
+    If c_delta <> 0 Then
+        If c_max = r And g >= b Then
+            hue = 60 * (g - b) / c_delta
+        ElseIf c_max = r And g < b Then
+            hue = 60 * (g - b) / c_delta + 360
+        ElseIf c_max = g Then
+            hue = 60 * (b - r) / c_delta + 120
+        ElseIf c_max = b Then
+            hue = 60 * (r - g) / c_delta + 240
+        Else
+            hue = 0
+        End If
+        If c_max <> 0 Then sat = c_delta / c_max * 100
+        bright = c_max * 100
+        arr(0) = Round(hue, 3)
+        arr(1) = Round(sat, 3)
+        arr(2) = Round(bright, 3)
     Else
-        hue = 0
+        arr(0) = 0
+        arr(1) = 0
+        arr(2) = c_max
     End If
-    
-    If c_max <> 0 Then sat = c_delta / c_max * 100
-    
-    bright = c_max * 100
-    
-    arr(0) = Round(hue, 3)
-    arr(1) = Round(sat, 3)
-    arr(2) = Round(bright, 3)
 
     rgb_to_hsb = arr
 End Function

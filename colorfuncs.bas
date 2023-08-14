@@ -713,8 +713,28 @@ End Function
 
 
 Public Function rotate_hue(rotation As Double, rgb_string As String) As String
+    If rotation < 0 Then rotation = 360 + rotation
     arr = rgb_to_hsb(rgb_string)
     arr(0) = (arr(0) + rotation) Mod 360
     hsb_string = arr(0) & ", " & arr(1) & ", " & arr(2)
     rotate_hue = hsb_to_rgb(hsb_string)
+End Function
+
+Public Function alternative_hues(rgb_string As String, Optional is_transposed As Boolean = True) As Variant
+
+    Dim arr(6) As Variant
+    arr(0) = rotate_hue(-15, rgb_string)
+    arr(1) = rotate_hue(-10, rgb_string)
+    arr(2) = rotate_hue(-5, rgb_string)
+    arr(3) = rgb_string
+    arr(4) = rotate_hue(5, rgb_string)
+    arr(5) = rotate_hue(10, rgb_string)
+    arr(6) = rotate_hue(15, rgb_string)
+
+    If is_transposed Then
+        alternative_hues = WorksheetFunction.Transpose(arr)
+    Else
+        alternative_hues = arr
+    End If
+
 End Function

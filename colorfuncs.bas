@@ -34,7 +34,7 @@ Public Function rgb_to_hsl(ByVal rgb_string As String) As Variant
     If c_delta = 0 Then
         arr(0) = 0
         arr(1) = 0
-        arr(2) = c_max
+        arr(2) = c_max * 100
         rgb_to_hsl = arr
     Else
         light = (c_max + c_min) / 2
@@ -51,8 +51,8 @@ Public Function rgb_to_hsl(ByVal rgb_string As String) As Variant
         End If
         If c_max = 0 Then sat = 0 Else sat = c_delta / c_max
         arr(0) = hue
-        arr(1) = sat
-        arr(2) = light
+        arr(1) = sat * 100
+        arr(2) = light * 100
         rgb_to_hsl = arr
     End If
 End Function
@@ -105,7 +105,7 @@ Public Function rgb_to_hsb(ByVal rgb_string As String) As Variant
     Else
         arr(0) = 0
         arr(1) = 0
-        arr(2) = c_max
+        arr(2) = c_max * 100
     End If
 
     rgb_to_hsb = arr

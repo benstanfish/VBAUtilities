@@ -106,24 +106,21 @@ Public Function hsl_to_rgb(ByVal hsl_string As String) As String
 End Function
 
 Public Function hsb_to_hsl(ByVal hsb_string As String)
-    'TODO: Still needs a little work
-    
+
     Dim arr(2) As Variant
     hsb_arr = split_hsb_string(hsb_string)
     
     hue = hsb_arr(0)
     sat_hsb = hsb_arr(1) / 100
     bright = hsb_arr(2) / 100
-    
     light = bright * (1 - sat_hsb / 2)
-    
-    If light = 0 Or light = 1 Then
-        sat_hsl = 0
+    If (light = 0) Or (light = 1) Then
+        sat = 0
     Else
-        sat_hsl = (bright - light) / WorksheetFunction.Min(light, 1 - light)
+        sat = (bright - light) / WorksheetFunction.Min(light, 1 - light)
     End If
     arr(0) = Round(hue, 3)
-    arr(1) = Round(sat_hsl * 100, 3)
+    arr(1) = Round(sat * 100, 3)
     arr(2) = Round(light * 100, 3)
     
     hsb_to_hsl = Join(arr, ", ")
@@ -131,22 +128,22 @@ Public Function hsb_to_hsl(ByVal hsb_string As String)
 End Function
 
 Public Function hsl_to_hsb(ByVal hsl_string As String)
-    'TODO: Still needs a little work
+
     Dim arr(2) As Variant
     hsl_arr = split_hsb_string(hsl_string)
     
     hue = hsl_arr(0)
     sat_hsl = hsl_arr(1) / 100
-    lum = hsl_arr(2) / 100
-    bright = lum + hsl_arr(1) * WorksheetFunction.Min(lum, 1 - lum)
+    light = hsl_arr(2) / 100
+    bright = light + sat_hsl * WorksheetFunction.Min(light, 1 - light)
     
     If bright = 0 Then
-        sat_hsb = 0
+        sat = 0
     Else
-        sat_hsb = 2 * (1 - lum / bright)
+        sat = 2 * (1 - light / bright)
     End If
     arr(0) = Round(hue, 3)
-    arr(1) = Round(sat_hsb * 100, 3)
+    arr(1) = Round(sat * 100, 3)
     arr(2) = Round(lum * 100, 3)
     
     hsl_to_hsb = Join(arr, ", ")

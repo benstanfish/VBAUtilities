@@ -402,13 +402,15 @@ Public Sub color_selection_rgb()
     'Helper function for coloring Excel cells that contain an RGB code
     Dim rgb_string As String
     For Each a_cell In Selection.Cells
-        rgb_string = a_cell.Value
-        back_color = rgb_to_long(rgb_string)
-        font_color = apply_contrasting_font_color(back_color)
-        With a_cell
-            .Interior.Color = back_color
-            .Font.Color = font_color
-        End With
+        If a_cell <> "" Then
+            rgb_string = a_cell.Value
+            back_color = rgb_to_long(rgb_string)
+            font_color = apply_contrasting_font_color(back_color)
+            With a_cell
+                .Interior.Color = back_color
+                .Font.Color = font_color
+            End With
+        End If
     Next
 End Sub
 
@@ -416,13 +418,15 @@ Public Sub color_selection_hex()
     'Helper function for coloring Excel cells that contain an Hex code
     Dim hex_string As String
     For Each a_cell In Selection.Cells
-        hex_string = a_cell.Value
-        back_color = rgb_to_long(hex_to_rgb(hex_string))
-        font_color = apply_contrasting_font_color(back_color)
-        With a_cell
-            .Interior.Color = back_color
-            .Font.Color = font_color
-        End With
+        If a_cell <> "" Then
+            hex_string = a_cell.Value
+            back_color = rgb_to_long(hex_to_rgb(hex_string))
+            font_color = apply_contrasting_font_color(back_color)
+            With a_cell
+                .Interior.Color = back_color
+                .Font.Color = font_color
+            End With
+        End If
     Next
 End Sub
 
@@ -430,13 +434,15 @@ Public Sub color_selection_hsb()
     'Helper function for coloring Excel cells that contain an HSB code
     Dim hsb_string As String
     For Each a_cell In Selection.Cells
-        hsb_string = a_cell.Value
-        back_color = rgb_to_long(hsb_to_rgb(hsb_string))
-        font_color = apply_contrasting_font_color(back_color)
-        With a_cell
-            .Interior.Color = back_color
-            .Font.Color = font_color
-        End With
+        If a_cell <> "" Then
+            hsb_string = a_cell.Value
+            back_color = rgb_to_long(hsb_to_rgb(hsb_string))
+            font_color = apply_contrasting_font_color(back_color)
+            With a_cell
+                .Interior.Color = back_color
+                .Font.Color = font_color
+            End With
+        End If
     Next
 End Sub
 

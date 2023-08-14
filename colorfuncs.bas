@@ -738,3 +738,32 @@ Public Function alternative_hues(rgb_string As String, Optional is_transposed As
     End If
 
 End Function
+
+Public Function dominant_hue_family(rgb_string as String) as String
+
+    Dim families As Variant
+    Dim hsb_arr As Variant
+    Dim hue as Double
+    families = Array("red","orange","yellow","chartreuse","green", _ 
+            "spring green","cyan","azure","blue","violet","magenta","rose")
+
+
+    hsb_arr = rgb_to_hsb(rgb_string)
+    hue = WorksheetFunction.MRound(hsb_arr(0),30)
+    sector = (hue / 30) Mod 12
+    dominant_hue_family = families(sector)
+
+End Function
+
+Public Function is_warm_color(rgb_string as String) as Boolean
+    Dim hsb_arr As Variant
+    Dim hue as Double
+    hsb_arr = rgb_to_hsb(rgb_string)
+    hue = hsb_arr(0)
+    If (hue > 90) and (hue < 270) Then
+        is_warm_color = False
+    Else
+        is_warm_color = True
+    End if  
+End Function
+

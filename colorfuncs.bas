@@ -132,7 +132,6 @@ End Function
 
 Public Function hsl_to_hsb(ByVal hsl_string As String)
     'TODO: Still needs a little work
-    
     Dim arr(2) As Variant
     hsl_arr = split_hsb_string(hsl_string)
     

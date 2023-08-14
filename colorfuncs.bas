@@ -590,16 +590,16 @@ Public Function get_square(ByVal rgb_string As String, Optional is_transposed As
 End Function
 
 Public Function random_rgb()
-    random_rgb = Join(Array(WorksheetFunction.RandomBetween(0, 255), _
-                            WorksheetFunction.RandomBetween(0, 255), _
-                            WorksheetFunction.RandomBetween(0, 255)), ", ")
+    random_rgb = Join(Array(WorksheetFunction.RandBetween(0, 255), _
+                            WorksheetFunction.RandBetween(0, 255), _
+                            WorksheetFunction.RandBetween(0, 255)), ", ")
 End Function
 
 Public Function random_hex()
 
-    random_hex = "#" & Join(Array(WorksheetFunction.DEC2HEX(WorksheetFunction.RandomBetween(0, 255)), _
-                                  WorksheetFunction.DEC2HEX(WorksheetFunction.RandomBetween(0, 255)), _
-                                  WorksheetFunction.DEC2HEX(WorksheetFunction.RandomBetween(0, 255)), "") 
+    random_hex = "#" & Join(Array(WorksheetFunction.DEC2HEX(WorksheetFunction.RandBetween(0, 255)), _
+                                    WorksheetFunction.DEC2HEX(WorksheetFunction.RandBetween(0, 255)), _
+                                    WorksheetFunction.DEC2HEX(WorksheetFunction.RandBetween(0, 255)), ""))
 
 End Function
 
@@ -658,18 +658,18 @@ Public Function alpha_tone(alpha, original_rgb_string, Optional target_rgb_strin
 End Function
 
 Public Function tint_rgb(tint_factor as Double, rgb_string as String) As String
-    Dim rgb_arr as As Variant
-    Dim arr as Variant
+    Dim rgb_arr as Variant
+    Dim arr(2) as Variant
     rgb_arr = split_rgb_string(rgb_string)
     For i = 0 to 2
-        arr(i) = rgb_arr(i) + ((255 - rgb_arr(i) * tint_factor))
+        arr(i) = rgb_arr(i) + ((255 - rgb_arr(i) )* tint_factor)
     Next
     tint_rgb = Join(arr, ", ")
 End Function
 
 Public Function shade_rgb(shade_factor as Double, rgb_string as String) As String
-    Dim rgb_arr as As Variant
-    Dim arr as Variant
+    Dim rgb_arr as Variant
+    Dim arr(2) as Variant
     rgb_arr = split_rgb_string(rgb_string)
     For i = 0 to 2
         arr(i) = rgb_arr(i) * (1 - shade_factor)
@@ -680,12 +680,12 @@ End Function
 Public Function tint_hex(tint_factor as Double, hex_string as String) As String
     Dim rgb_string as String
     Dim new_rgb as String
-    Dim rgb_arr as As Variant
-    Dim arr as Variant
+    Dim rgb_arr as Variant
+    Dim arr(2) as Variant
     rbg_string = hex_to_rgb(hex_string)
     rgb_arr = split_rgb_string(rgb_string)
     For i = 0 to 2
-        arr(i) = rgb_arr(i) + ((255 - rgb_arr(i) * tint_factor))
+        arr(i) = rgb_arr(i) + ((255 - rgb_arr(i)) * tint_factor)
     Next
     new_rgb = Join(arr, ", ")
     tint_hex = rgb_to_hex(new_rgb)
@@ -694,8 +694,8 @@ End Function
 Public Function shade_hex(shade_factor as Double, hex_string as String) As String
     Dim rgb_string as String
     Dim new_rgb as String
-    Dim rgb_arr as As Variant
-    Dim arr as Variant
+    Dim rgb_arr as Variant
+    Dim arr(2) as Variant
     rbg_string = hex_to_rgb(hex_string)
     rgb_arr = split_rgb_string(rgb_string)
     For i = 0 to 2
@@ -703,4 +703,12 @@ Public Function shade_hex(shade_factor as Double, hex_string as String) As Strin
     Next
     new_rgb = Join(arr, ", ")
     shade_hex = rgb_to_hex(new_rgb)
+End Function
+
+
+Public Function rotate_hue(rotation As Double, rgb_string As String) As String
+    arr = rgb_to_hsb(rgb_string)
+    arr(0) = (arr(0) + rotation) Mod 360
+    hsb_string = arr(0) & ", " & arr(1) & ", " & arr(2)
+    rotate_hue = hsb_to_rgb(hsb_string)
 End Function

@@ -181,8 +181,6 @@ Public Function clean_rgb_string(ByVal rgb_string As String) As String
     clean_rgb_string = rgb_string
 End Function
 
-
-
 Public Function split_rgb_string(ByVal rgb_string As String) As Variant
     Dim rgb_arr As Variant
     rgb_arr = Split(clean_rgb_string(rgb_string), ",")
@@ -300,86 +298,193 @@ Public Sub reset_selection_color()
 End Sub
 
 
-Public Function get_complement(ByVal rgb_string As String)
-    Dim hsb_arr As Variant   
+Public Function get_complement(ByVal rgb_string As String) As String
+    Dim hsb_arr As Variant
+    Dim arr(2) As Variant
     hsb_arr = rgb_to_hsb(rgb_string)
-    hsb_arr(0) = (hsb_arr(0) + 180) Mod 360
-    get_complement = hsb_to_rgb(Join(hsb_arr, ", "))
+    For i = 0 To 2
+        arr(i) = hsb_arr(i)
+    Next
+    arr(0) = (arr(0) + 180) Mod 360
+    get_complement = hsb_to_rgb(Join(arr, ", "))
 End Function
 
-Public Function get_triad(ByVal rgb_string as String)
-    Dim hsb_arr1 As Variant
-    Dim hsb_arr2 As Variant
-    Dim ret_arr(1) as String
-    hsb_arr1 = rgb_to_hsb(rgb_string)
-    hsb_arr2 = rgb_to_hsb(rgb_string)
-    hsb_arr1 = (hsb_arr1(0) + 120) mod 360
-    hsb_arr2 = (hsb_arr2(0) + 240) mod 360
-    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
-    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
-    get_triad = ret_arr
+Public Function get_triad(ByVal rgb_string As String, Optional is_transposed As Boolean = False) As Variant
+    Dim hsb_1 As Variant
+    Dim hsb_2 As Variant
+    Dim arr(2) As Variant
+
+    hsb_1 = rgb_to_hsb(rgb_string)
+    hsb_2 = rgb_to_hsb(rgb_string)
+    hsb_1(0) = (hsb_1(0) + 120) Mod 360
+    hsb_2(0) = (hsb_2(0) + 240) Mod 360
+
+    arr(0) = rgb_string
+    arr(1) = hsb_to_rgb(hsb_1(0) & ", " & hsb_1(1) & ", " & hsb_1(2))
+    arr(2) = hsb_to_rgb(hsb_2(0) & ", " & hsb_2(1) & ", " & hsb_2(2))
+    If is_transposed Then
+        get_triad = WorksheetFunction.Transpose(arr)
+    Else
+        get_triad = arr
+    End If
 End Function
 
-Public Function get_split_complement(ByVal rgb_string as String)
-    Dim hsb_arr1 As Variant
-    Dim hsb_arr2 As Variant
-    Dim ret_arr(1) as String
-    hsb_arr1 = rgb_to_hsb(rgb_string)
-    hsb_arr2 = rgb_to_hsb(rgb_string)
-    hsb_arr1 = (hsb_arr1(0) + 150) mod 360
-    hsb_arr2 = (hsb_arr2(0) + 210) mod 360
-    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
-    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
-    get_split_complement = ret_arr
+
+Public Function get_split_complement(ByVal rgb_string As String, Optional is_transposed As Boolean = False) As Variant
+    Dim hsb_1 As Variant
+    Dim hsb_2 As Variant
+    Dim arr(2) As Variant
+
+    hsb_1 = rgb_to_hsb(rgb_string)
+    hsb_2 = rgb_to_hsb(rgb_string)
+    hsb_1(0) = (hsb_1(0) + 150) Mod 360
+    hsb_2(0) = (hsb_2(0) + 210) Mod 360
+
+    arr(0) = rgb_string
+    arr(1) = hsb_to_rgb(hsb_1(0) & ", " & hsb_1(1) & ", " & hsb_1(2))
+    arr(2) = hsb_to_rgb(hsb_2(0) & ", " & hsb_2(1) & ", " & hsb_2(2))
+    If is_transposed Then
+        get_split_complement = WorksheetFunction.Transpose(arr)
+    Else
+        get_split_complement = arr
+    End If
 End Function
 
-Public Function get_analogous(ByVal rgb_string as String)
-    Dim hsb_arr1 As Variant
-    Dim hsb_arr2 As Variant
-    Dim ret_arr(1) as String
-    hsb_arr1 = rgb_to_hsb(rgb_string)
-    hsb_arr2 = rgb_to_hsb(rgb_string)
-    hsb_arr1 = (hsb_arr1(0) + 30) mod 360
-    hsb_arr2 = (hsb_arr2(0) - 30) mod 360
-    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
-    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
-    get_analogous = ret_arr
+Public Function get_analogous(ByVal rgb_string As String, _
+    Optional is_ordered As Boolean = True, _
+    Optional is_transposed As Boolean = False) As Variant
+    Dim hsb_1 As Variant
+    Dim hsb_2 As Variant
+    Dim arr(2) As Variant
+
+    hsb_1 = rgb_to_hsb(rgb_string)
+    hsb_2 = rgb_to_hsb(rgb_string)
+    hsb_1(0) = (hsb_1(0) + 30) Mod 360
+    hsb_2(0) = (hsb_2(0) + 330) Mod 360
+
+    If is_ordered Then
+        arr(0) = hsb_to_rgb(hsb_1(0) & ", " & hsb_1(1) & ", " & hsb_1(2))
+        arr(1) = rgb_string
+    Else
+        arr(1) = hsb_to_rgb(hsb_1(0) & ", " & hsb_1(1) & ", " & hsb_1(2))
+        arr(0) = rgb_string
+    End If
+    arr(2) = hsb_to_rgb(hsb_2(0) & ", " & hsb_2(1) & ", " & hsb_2(2))
+    If is_transposed Then
+        get_analogous = WorksheetFunction.Transpose(arr)
+    Else
+        get_analogous = arr
+    End If
 End Function
 
-Public Function get_tetradic(ByVal rgb_string as String, Optional rotate_CW as Boolean = True)
-    Dim hsb_arr1 As Variant
-    Dim hsb_arr2 As Variant
-    Dim hsb_arr3 As Variant
-    Dim rotation_coeff As Integer
-    Dim ret_arr(2) as String
-    hsb_arr1 = rgb_to_hsb(rgb_string)
-    hsb_arr2 = rgb_to_hsb(rgb_string)
-    hsb_arr3 = rgb_to_hsb(rgb_string)
-    if rotate_CW = True then rotation_coeff = 1 Else rotation_coeff = -1
-    hsb_arr1 = (hsb_arr1(0) + rotation_coeff * 60) mod 360
-    hsb_arr2 = (hsb_arr2(0) + rotation_coeff * 180) mod 360
-    hsb_arr3 = (hsb_arr1(0) + rotation_coeff * 240) mod 360
-    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
-    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
-    ret_arr(2) = hsb_to_rgb(Join(hsb_arr3, ", "))
-    get_tetradic = ret_arr
+Public Function get_tetradic(ByVal rgb_string As String, _
+                            Optional rotate_CW As Boolean = True, _
+                            Optional is_transposed As Boolean = False) As Variant
+    Dim hsb_1 As Variant
+    Dim hsb_2 As Variant
+    Dim hsb_3 As Variant
+    Dim arr(3) As Variant
+    
+    hsb_1 = rgb_to_hsb(rgb_string)
+    hsb_2 = rgb_to_hsb(rgb_string)
+    hsb_3 = rgb_to_hsb(rgb_string)
+    
+    If rotate_CW = True Then
+        hsb_1(0) = (hsb_1(0) + 120) Mod 360
+        hsb_2(0) = (hsb_2(0) + 180) Mod 360
+        hsb_3(0) = (hsb_3(0) + 300) Mod 360
+    Else
+        hsb_1(0) = (hsb_1(0) + 60) Mod 360
+        hsb_2(0) = (hsb_2(0) + 180) Mod 360
+        hsb_3(0) = (hsb_3(0) + 240) Mod 360
+    End If
+
+    arr(0) = rgb_string
+    arr(1) = hsb_to_rgb(hsb_1(0) & ", " & hsb_1(1) & ", " & hsb_1(2))
+    arr(2) = hsb_to_rgb(hsb_2(0) & ", " & hsb_2(1) & ", " & hsb_2(2))
+    arr(3) = hsb_to_rgb(hsb_3(0) & ", " & hsb_3(1) & ", " & hsb_3(2))
+    If is_transposed Then
+        get_tetradic = WorksheetFunction.Transpose(arr)
+    Else
+        get_tetradic = arr
+    End If
 End Function
 
-Public Function get_square(ByVal rgb_string as String)
-    Dim hsb_arr1 As Variant
-    Dim hsb_arr2 As Variant
-    Dim hsb_arr3 As Variant
-    Dim rotation_coeff As Integer
-    Dim ret_arr(2) as String
-    hsb_arr1 = rgb_to_hsb(rgb_string)
-    hsb_arr2 = rgb_to_hsb(rgb_string)
-    hsb_arr3 = rgb_to_hsb(rgb_string)
-    if rotate_CW = True then rotation_coeff = 1 Else rotation_coeff = -1
-    hsb_arr1 = (hsb_arr1(0) + rotation_coeff * 90) mod 360
-    hsb_arr2 = (hsb_arr2(0) + rotation_coeff * 180) mod 360
-    hsb_arr3 = (hsb_arr1(0) + rotation_coeff * 270) mod 360
-    ret_arr(0) = hsb_to_rgb(Join(hsb_arr1, ", "))
-    ret_arr(1) = hsb_to_rgb(Join(hsb_arr2, ", "))
-    ret_arr(2) = hsb_to_rgb(Join(hsb_arr3, ", "))
-    get_square = ret_arr
+Public Function get_square(ByVal rgb_string As String, Optional is_transposed As Boolean = False) As Variant
+    Dim hsb_1 As Variant
+    Dim hsb_2 As Variant
+    Dim hsb_3 As Variant
+    Dim arr(3) As Variant
+    
+    hsb_1 = rgb_to_hsb(rgb_string)
+    hsb_2 = rgb_to_hsb(rgb_string)
+    hsb_3 = rgb_to_hsb(rgb_string)
+    
+    hsb_1(0) = (hsb_1(0) + 90) Mod 360
+    hsb_2(0) = (hsb_2(0) + 180) Mod 360
+    hsb_3(0) = (hsb_3(0) + 270) Mod 360
+
+    arr(0) = rgb_string
+    arr(1) = hsb_to_rgb(hsb_1(0) & ", " & hsb_1(1) & ", " & hsb_1(2))
+    arr(2) = hsb_to_rgb(hsb_2(0) & ", " & hsb_2(1) & ", " & hsb_2(2))
+    arr(3) = hsb_to_rgb(hsb_3(0) & ", " & hsb_3(1) & ", " & hsb_3(2))
+    If is_transposed Then
+        get_square = WorksheetFunction.Transpose(arr)
+    Else
+        get_square = arr
+    End If
+End Function
+
+Public Function random_rgb()
+    random_rgb = Join(Array(WorksheetFunction.RandomBetween(0, 255), _
+                            WorksheetFunction.RandomBetween(0, 255), _
+                            WorksheetFunction.RandomBetween(0, 255)), ", ")
+End Function
+
+Public Function alpha_blend(alpha, original_rgb_string, target_rgb_string)
+    Dim arr(2) As Variant
+    Dim orig_arr As Variant
+    Dim target_arr As Variant
+    orig_arr = split_rgb_string(original_rgb_string)
+    target_arr = split_rgb_string(target_rgb_string)
+    For i = LBound(orig_arr) To UBound(orig_arr)
+        arr(i) = CLng(orig_arr(i) + alpha * (target_arr(i) - orig_arr(i)))
+    Next
+    alpha_blend = Join(arr, ", ")
+End Function
+
+Public Function alpha_shade(alpha, original_rgb_string, Optional target_rgb_string As String = "0,0,0")
+    Dim arr(2) As Variant
+    Dim orig_arr As Variant
+    Dim target_arr As Variant
+    orig_arr = split_rgb_string(original_rgb_string)
+    target_arr = split_rgb_string(target_rgb_string)
+    For i = LBound(orig_arr) To UBound(orig_arr)
+        arr(i) = CLng(orig_arr(i) + alpha * (target_arr(i) - orig_arr(i)))
+    Next
+    alpha_shade = Join(arr, ", ")
+End Function
+
+Public Function alpha_tint(alpha, original_rgb_string, Optional target_rgb_string As String = "255,255,255")
+    Dim arr(2) As Variant
+    Dim orig_arr As Variant
+    Dim target_arr As Variant
+    orig_arr = split_rgb_string(original_rgb_string)
+    target_arr = split_rgb_string(target_rgb_string)
+    For i = LBound(orig_arr) To UBound(orig_arr)
+        arr(i) = CLng(orig_arr(i) + alpha * (target_arr(i) - orig_arr(i)))
+    Next
+    alpha_tint = Join(arr, ", ")
+End Function
+
+Public Function alpha_tone(alpha, original_rgb_string, Optional target_rgb_string As String = "128,128,128")
+    Dim arr(2) As Variant
+    Dim orig_arr As Variant
+    Dim target_arr As Variant
+    orig_arr = split_rgb_string(original_rgb_string)
+    target_arr = split_rgb_string(target_rgb_string)
+    For i = LBound(orig_arr) To UBound(orig_arr)
+        arr(i) = CLng(orig_arr(i) + alpha * (target_arr(i) - orig_arr(i)))
+    Next
+    alpha_tone = Join(arr, ", ")
 End Function

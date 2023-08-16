@@ -4,7 +4,6 @@ Attribute VB_Name = "reflection"
 'Microsoft Visual Basic for Applications Extensibility 5.3 (the VBIDE library).
 'as well as Microsoft VBScript Regular Expressions 5.5
 
-
 Public Enum proc_kind
     vbext_pk_Proc = 0
     vbext_pk_Let = 1
@@ -19,7 +18,6 @@ Public Function proc_kind_text(proc_kind As Long)
     proc_kind_text = arr(proc_kind)
 
 End Function
-
 
 Private Sub count_module_lines()
 

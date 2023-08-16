@@ -271,7 +271,6 @@ Public Function split_hsb_string(ByVal hsb_string As String) As Variant
 End Function
 
 
-
 Public Function long_to_rgb(ByVal a_long As Long) as String
     Dim r, g, b as Double
     Dim arr(2) as Variant

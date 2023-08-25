@@ -142,3 +142,23 @@ Private Sub list_arguments()
 End Sub
 
 
+Private Sub ExportModules()
+    Dim me_path As String
+    Dim comp As VBIDE.VBComponent
+    
+    me_path = Application.ActiveWorkbook.Path & "\"
+    
+    For Each comp In ActiveWorkbook.VBProject.VBComponents
+        is_export = True
+        Select Case comp.Type
+            Case vbext_ct_ClassModule
+                comp.Export me_path & comp.Name & ".cls"
+            Case vbext_ct_MSForm
+                comp.Export me_path & comp.Name & ".frm"
+            Case vbext_ct_StdModule
+                comp.Export me_path & comp.Name & ".bas"
+            Case vbext_ct_Document
+                ' Don't export
+        End Select
+    Next
+End Sub

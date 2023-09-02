@@ -14,6 +14,9 @@ Public Sub SendTest()
         .Cc = "someone_else@outlook.com"
         .BCC  = "still_another_person@yahoo.com"
         .Subject = "Test of Automated Emails Sent from VBA"
+        .Importance = olImportanceHigh
+        ' Add .Attachements to add attachements
+        ' Use .Send to silently email, or use .Display to show the email draft
         .Send
     End With
 

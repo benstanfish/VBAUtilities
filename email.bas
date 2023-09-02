@@ -9,14 +9,14 @@ Public Sub SendTest()
     
     With outlook_mail
         .BodyFormat = olFormatHTML
-        .HTMLBody = "Send email from VBA using Outlook. <br><br>Test conducted at: " & Format(Now(), "yyyy/mm/dd hh:mm:ss")
+        .Display
+        .HTMLBody = "Send email from VBA using Outlook. <br><br>Test conducted at: " & Format(Now(), "yyyy/mm/dd hh:mm:ss") & .HTMLBody 'Need to do this to add the default signature (also, must use .Display to generate it)
         .To = "someone@gmail.com; someone@hotmail.com"
         .Cc = "someone_else@outlook.com"
         .BCC  = "still_another_person@yahoo.com"
         .Subject = "Test of Automated Emails Sent from VBA"
         .Importance = olImportanceHigh
         .Attachments.Add ThisWorkbook.FullName
-        ' Use .Send to silently email, or use .Display to show the email draft
         .Send
     End With
 

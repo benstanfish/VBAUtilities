@@ -1,5 +1,5 @@
-Attribute VB_Name = "interpolations"
-Public Function multilinearinterpolate(x As Range, x_range As Range, y_range As Range) As Double
+Attribute VB_Name = "interpolate"
+Public Function Interpolate_Multilinear(x As Range, x_range As Range, y_range As Range) As Double
 
     Dim xs() As Variant, ys() As Variant, x_value As Double
     Dim i As Long, j As Long, k As Long
@@ -20,10 +20,10 @@ Public Function multilinearinterpolate(x As Range, x_range As Range, y_range As 
     
     Select Case x_value
         Case Is <= xs(LBound(xs, 1), 1)
-            multilinearinterpolate = ys(LBound(ys, 1), 1)
+            Interpolate_Multilinear = ys(LBound(ys, 1), 1)
             Exit Function
         Case Is >= xs(UBound(xs, 1), 1)
-            multilinearinterpolate = ys(UBound(ys, 1), 1)
+            Interpolate_Multilinear = ys(UBound(ys, 1), 1)
             Exit Function
         Case Else
             Dim dict As Object
@@ -32,7 +32,7 @@ Public Function multilinearinterpolate(x As Range, x_range As Range, y_range As 
                 dict.Add xs(i, 1), ys(i, 1)
             Next
             If dict.Exists(x_value) Then
-                multilinearinterpolate = dict(x_value)
+                Interpolate_Multilinear = dict(x_value)
                 Set dict = Nothing
             Else
                 For k = LBound(xs, 1) To UBound(xs, 1) - 1
@@ -42,12 +42,12 @@ Public Function multilinearinterpolate(x As Range, x_range As Range, y_range As 
                         Exit For
                     End If
                 Next
-                multilinearinterpolate = (x_value - xs(i, 1)) * (ys(j, 1) - ys(i, 1)) / (xs(j, 1) - xs(i, 1)) + ys(i, 1)
+                Interpolate_Multilinear = (x_value - xs(i, 1)) * (ys(j, 1) - ys(i, 1)) / (xs(j, 1) - xs(i, 1)) + ys(i, 1)
             End If
     End Select
 End Function
 
-Public Function MultiBilinearInterpolate(x As Range, y As Range, x_range As Range, y_range As Range, z_range As Range) As Double
+Public Function Interpolate_BilinearGrid(x As Range, y As Range, x_range As Range, y_range As Range, z_range As Range, Optional z_x_as_rows As Boolean = True) As Double
 
     Dim xs() As Variant, ys() As Variant, zs() As Variant
     Dim x_value As Double, y_value As Double
@@ -72,7 +72,11 @@ Public Function MultiBilinearInterpolate(x As Range, y As Range, x_range As Rang
         ys = y_range
     End If
     
-    zs = WorksheetFunction.Transpose(z_range)
+    If z_x_as_rows Then
+        zs = z_range
+    Else
+        zs = WorksheetFunction.Transpose(z_range)
+    End If
     
     If x_value <= xs(LBound(xs, 1), 1) Then
         index_xi = 1
@@ -138,14 +142,14 @@ Public Function MultiBilinearInterpolate(x As Range, y As Range, x_range As Rang
     zjj = zs(index_xj, index_yj)
     
     If xi <> xj And yi <> yj Then
-        MultiBilinearInterpolate = (yj - y_value) / (yj - yi) * ((xj - x_value) / (xj - xi) * zii + (x_value - xi) / (xj - xi) * zji) + _
+        Interpolate_BilinearGrid = (yj - y_value) / (yj - yi) * ((xj - x_value) / (xj - xi) * zii + (x_value - xi) / (xj - xi) * zji) + _
                               (y_value - yi) / (yj - yi) * ((xj - x_value) / (xj - xi) * zij + (x_value - xi) / (xj - xi) * zjj)
     ElseIf xi = xj And yi <> yj Then
-        MultiBilinearInterpolate = (y_value - yi) * (zij - zii) / (yj - yi) + zii
+        Interpolate_BilinearGrid = (y_value - yi) * (zij - zii) / (yj - yi) + zii
     ElseIf yi = yj And xi <> xj Then
-        MultiBilinearInterpolate = (xj - x_value) / (xj - xi) * zii + (x_value - xi) / (xj - xi) * zji
+        Interpolate_BilinearGrid = (xj - x_value) / (xj - xi) * zii + (x_value - xi) / (xj - xi) * zji
     Else
-        MultiBilinearInterpolate = zs(index_xi, index_yi)
+        Interpolate_BilinearGrid = zs(index_xi, index_yi)
     End If
 End Function
 

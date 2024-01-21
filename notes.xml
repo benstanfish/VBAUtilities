@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<notes:root xmlns:notes="https://www.musicalnotes.com/">
+<!--For use with chordsheet.bas and MS Word-->
+	<notes:c>C</notes:c>
+	<notes:cs>C#</notes:cs>
+	<notes:df>Db</notes:df>
+	<notes:d>D</notes:d>
+	<notes:ds>D#</notes:ds>
+	<notes:ef>Eb</notes:ef>
+	<notes:e>E</notes:e>
+	<notes:es>E#</notes:es>
+	<notes:ff>Fb</notes:ff>
+	<notes:f>F</notes:f>
+	<notes:fs>F#</notes:fs>
+	<notes:gf>Gb</notes:gf>
+	<notes:g>G</notes:g>
+	<notes:gs>G#</notes:gs>
+	<notes:af>Ab</notes:af>
+	<notes:a>A</notes:a>
+	<notes:as>A#</notes:as>
+	<notes:bf>Bb</notes:bf>
+	<notes:b>B</notes:b>
+	<notes:cf>Cb</notes:cf>
+</notes:root>

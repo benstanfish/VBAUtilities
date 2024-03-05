@@ -202,7 +202,7 @@ Private Sub ColorFileTypes()
     Set fileTypeRange = ActiveSheet.Range("E2", Cells(ActiveSheet.UsedRange.Rows.Count, 4))
     
     For Each aCell In fileTypeRange
-        If aDict.Exists(aCell.Value) Then
+        If aDict.Exists(LOWER(aCell.Value)) Then
             With aCell
                 .Font.Color = arr(aDict(aCell.Value), ColorSetting.Stroke)
                 .Interior.Color = arr(aDict(aCell.Value), ColorSetting.Fill)

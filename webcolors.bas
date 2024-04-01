@@ -1,18 +1,18 @@
 Attribute VB_Name = "webcolors"
 Public Const mod_name As String = "webcolors"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "1.2"
-Public Const module_date As Date = #3/16/2024#
+Public Const module_version As String = "1.2.1"
+Public Const module_date As Date = #3/31/2024#
 
 ' Bootstrap v5.3 Alert Colors
 ' Note that DARKER as Background goes well with basic
 ' and DARK background goes well with LIGHT
 
-Public Const DANGER As Long = 9406186
-Public Const WARNING As Long = 7002879
-Public Const SUCCESS As Long = 6269045
-Public Const PRIMARY As Long = 16689262
-Public Const SECONDARY As Long = 11644071
+Public Const DANGER_COLOR As Long = 9406186
+Public Const WARNING_COLOR As Long = 7002879
+Public Const SUCCESS_COLOR As Long = 6269045
+Public Const PRIMARY_COLOR As Long = 16689262
+Public Const SECONDARY_COLOR As Long = 11644071
 
 Public Const DANGER_LIGHT As Long = 14342136
 Public Const WARNING_LIGHT As Long = 13497343
@@ -214,3 +214,4 @@ Function ContrastText(bgColor As Long, _
     color_brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255
     If color_brightness > 0.55 Then ContrastText = darkColor Else ContrastText = lightColor
 End Function
+

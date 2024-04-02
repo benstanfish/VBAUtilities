@@ -1,8 +1,8 @@
 Attribute VB_Name = "excelToPPT"
 Public Const mod_name As String = "excelToPPT"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "1.2"
-Public Const module_date As Date = #4/1/2024#
+Public Const module_version As String = "1.3"
+Public Const module_date As Date = #4/2/2024#
 
 ' REQUIRED REFERENCES:
 ' - Microsoft PowerPoint 16.0 Object Model
@@ -19,7 +19,6 @@ End Enum
 Public Sub GenerateThisSlide()
     GenerateSlide ActiveSheet
 End Sub
-
 
 Public Sub GenerateAllSlides()
     For i = 2 To ActiveWorkbook.Sheets.Count
@@ -88,7 +87,7 @@ createNew:
             .WordWrap = False
             With .TextRange
                 .ParagraphFormat.Alignment = msoAlignRight
-                .Text = "P2#: " & sht.ListObjects(TableType.info).Range(3, 2)
+                .Text = "P2#: " & sht.ListObjects(TableType.info).Range(TableInfo.P2Line, 2)
                 .Font.Name = "Aptos Display"
                 .Font.Size = 12
                 .Font.Bold = False
@@ -131,7 +130,7 @@ createNew:
         ' Highlight my own name
         Dim tRng As TextRange
         Set tRng = pdtRoster.TextFrame.TextRange
-        Set foundText = tRng.Find(FindWhat:="TL: Fisher")
+        Set foundText = tRng.Find(FindWhat:="TL: B Fisher")
         With foundText
             .Font.Bold = True
         End With
@@ -156,10 +155,10 @@ createNew:
         Set projectInfo = .Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
         
         Dim pInfo As Variant
-        pInfo = Array("PA: " & sht.ListObjects(TableType.info).Range(4, 2), _
-                        sht.ListObjects(TableType.info).Range(5, 2), _
-                        "JES: " & sht.ListObjects(TableType.info).Range(6, 2), _
-                        sht.ListObjects(TableType.info).Range(8, 2), _
+        pInfo = Array("PA: " & sht.ListObjects(TableType.info).Range(TableInfo.PALine, 2), _
+                        sht.ListObjects(TableType.info).Range(TableInfo.CWELine, 2), _
+                        "JES: " & sht.ListObjects(TableType.info).Range(TableInfo.JESLine, 2), _
+                        sht.ListObjects(TableType.info).Range(TableInfo.ClientLine, 2), _
                         "Updated: " & Format(Now, "mm/dd/YY"))
         
         With projectInfo.TextFrame2
@@ -196,18 +195,11 @@ createNew:
             End With
         End If
         
-'        Set foundText = tRng.Find(FindWhat:=pInfo(4))
-'        If Not foundText Is Nothing Then
-'            With foundText
-'                '.Font.Size = 9
-'            End With
-'        End If
-        
     End With
     
     ' Copy in the project type logo
     Dim funding As String
-    funding = LCase(sht.ListObjects(TableType.info).Range(7, 2))
+    funding = LCase(sht.ListObjects(TableType.info).Range(TableInfo.FundingLine, 2))
     Select Case funding
         Case Is = "srm"
             Sheet1.Shapes("srm").Copy
@@ -308,13 +300,36 @@ createNew:
             With .TextRange
                 .Text = WorksheetFunction.TextJoin(vbCrLf, True, commentsArr)
                 .ParagraphFormat.Bullet.Character = 8226
-                .ParagraphFormat.SpaceAfter = 6
+                .ParagraphFormat.SpaceAfter = 0.5
                 .Font.Name = "Aptos"
                 .Font.Size = 12.5
                 .Font.Bold = False
             End With
         End With
     End With
+    
+    If sht.ListObjects(TableType.info).Range(10, 2) <> "" Then
+        Dim watermark As PowerPoint.Shape
+        oLeft = Application.InchesToPoints(1)
+        oTop = Application.InchesToPoints(1)
+        oWidth = Application.InchesToPoints(10)
+        oHeight = Application.InchesToPoints(0.25)
+        With ppSlide
+            Set watermark = .Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
+            With watermark.TextFrame2
+                .WordWrap = False
+                .AutoSize = msoAutoSizeShapeToFitText
+                With .TextRange
+                    .Text = sht.ListObjects(TableType.info).Range(TableInfo.WatermarkLine, 2)
+                    .Font.Name = "Aptos Black"
+                    .Font.Size = 84
+                End With
+            End With
+            watermark.Rotation = -20
+            watermark.Left = (ppPres.PageSetup.SlideWidth - watermark.Width) / 2
+            watermark.Top = (ppPres.PageSetup.SlideHeight - watermark.Height) / 2
+        End With
+    End If
     
     Application.CutCopyMode = False
     
@@ -324,9 +339,6 @@ createNew:
     Set ppSlide = Nothing
 
 End Sub
-
-
-
 
 
 

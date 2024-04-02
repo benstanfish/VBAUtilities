@@ -1,14 +1,35 @@
 Attribute VB_Name = "tablesDOD"
 Public Const mod_name As String = "tablesDoD"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "1.2"
-Public Const module_date As Date = #4/1/2024#
-
+Public Const module_version As String = "1.3"
+Public Const module_date As Date = #4/2/2024#
 
 Public Const Army = "Army"
 Public Const USN = "Navy"
 Public Const AF = "AF"
 Public Const USMC = "USMC"
+
+Public Const TARGET_INFO = "A2"
+Public Const TARGET_PDT = "A14"
+Public Const TARGET_COMMENTS = "A34"
+Public Const TARGET_SCHED = "D2"
+
+Public Enum TableInfo
+    [_First]
+    RegionTitle = -1
+    HeaderRow = 1
+    IDColumn = 1
+    ProjectNameLine = 2
+    P2Line = 3
+    PALine = 4
+    CWELine = 5
+    JESLine = 6
+    FundingLine = 7
+    ClientLine = 8
+    ContractLine = 9
+    WatermarkLine = 10
+    [_Last]
+End Enum
 
 Private Sub CreateDoDTableStyles()
     Dim ArmyArr As Variant, AFArr As Variant, USNArr As Variant, USMCArr As Variant
@@ -35,9 +56,7 @@ dump:
 End Function
 
 Private Sub DeleteTableStyle(styleName As String)
-
     If DoesTableStyleExist(styleName) Then ActiveWorkbook.TableStyles(styleName).Delete
-
 End Sub
 
 Private Sub DeleteAllTableStyles()
@@ -107,9 +126,6 @@ End Sub
 
 Private Sub ApplyTableSecondaryFormats(aTable As ListObject)
     
-'    Dim aTable As ListObject
-'    Set aTable = Selection.ListObject
-    
     With aTable
         .ShowAutoFilterDropDown = False
         .Range.Font.Name = "Arial"
@@ -141,7 +157,8 @@ Private Sub ApplyTableSecondaryFormats(aTable As ListObject)
     Next
     aTable.DataBodyRange.VerticalAlignment = xlVAlignCenter
     
-    aTable.Range.Columns(1).HorizontalAlignment = xlHAlignCenter
+    Range(TARGET_SCHED).EntireRow.AutoFit
+    aTable.Range.Columns(TableInfo.IDColumn).HorizontalAlignment = xlHAlignCenter
     
 End Sub
 
@@ -176,15 +193,13 @@ Function AutoincrementTable(baseName As String) As String
     If maxIndex = 0 Then AutoincrementTable = baseName Else AutoincrementTable = baseName & maxIndex
 End Function
 
-
-
 Public Sub CreateProjectInfoTable(sht As Worksheet)
 
     Dim target As Range
-    Set target = sht.Range("A2")
+    Set target = sht.Range(TARGET_INFO)
 
     Dim arr As Variant
-    arr = Array("Parameter", "Project Name", "P2", "PA", "CWE/ECC", "JES?", "Funding", "Client", "Contract")
+    arr = Array("Parameter", "Project Name", "P2", "PA", "CWE/ECC", "JES?", "Funding", "Client", "Contract", "Watermark")
     
     target.Resize(UBound(arr) + 1) = WorksheetFunction.Transpose(arr)
     target.Offset(0, 1).Value = "Value"
@@ -195,17 +210,18 @@ Public Sub CreateProjectInfoTable(sht As Worksheet)
     With ActiveSheet.ListObjects(pITable.Name)
         .TableStyle = "TableStyleLight9"
         .ShowAutoFilterDropDown = False
+        .DataBodyRange.HorizontalAlignment = xlHAlignLeft
     End With
 
     target.EntireColumn.AutoFit
     target.Offset(0, 1).ColumnWidth = 50
     
-    With target.Offset(-1, 0)
+    With target.Offset(TableInfo.RegionTitle, 0)
         .Value = "Project Info"
         .Font.Bold = True
     End With
     
-    With target.Offset(4, 1).Validation
+    With target.Offset(TableInfo.CWELine - 1, 1).Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
         xlBetween, Formula1:="CWE " & ChrW(8804) & " ECC, CWE " & ChrW(8805) & " ECC, CWE ? ECC"
@@ -219,7 +235,7 @@ Public Sub CreateProjectInfoTable(sht As Worksheet)
         .ShowError = True
     End With
     
-    With target.Offset(5, 1).Validation
+    With target.Offset(TableInfo.JESLine - 1, 1).Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
         xlBetween, Formula1:="Yes, No, Unknown"
@@ -230,10 +246,10 @@ Public Sub CreateProjectInfoTable(sht As Worksheet)
         .InputMessage = ""
         .ErrorMessage = ""
         .ShowInput = True
-        .ShowError = True
+        .ShowError = False
     End With
     
-    With target.Offset(6, 1).Validation
+    With target.Offset(TableInfo.FundingLine - 1, 1).Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
         xlBetween, Formula1:="MILCON, SRM, O&M, Host Nation, Other"
@@ -244,10 +260,10 @@ Public Sub CreateProjectInfoTable(sht As Worksheet)
         .InputMessage = ""
         .ErrorMessage = ""
         .ShowInput = True
-        .ShowError = True
+        .ShowError = False
     End With
     
-    With target.Offset(7, 1).Validation
+    With target.Offset(TableInfo.ClientLine - 1, 1).Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
         xlBetween, Formula1:="Army, Air Force, Navy, Marines, DPW, DLA, DoDEA"
@@ -261,7 +277,7 @@ Public Sub CreateProjectInfoTable(sht As Worksheet)
         .ShowError = False
     End With
     
-    With target.Offset(8, 1).Validation
+    With target.Offset(TableInfo.ContractLine - 1, 1).Validation
         .Delete
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
         xlBetween, Formula1:="DBB, DB"
@@ -272,15 +288,17 @@ Public Sub CreateProjectInfoTable(sht As Worksheet)
         .InputMessage = ""
         .ErrorMessage = ""
         .ShowInput = True
-        .ShowError = True
+        .ShowError = False
     End With
-        
+    
+    
+    
 End Sub
 
 Public Sub CreatePDTTable(sht As Worksheet)
 
     Dim target As Range
-    Set target = sht.Range("A13")
+    Set target = sht.Range(TARGET_PDT)
 
     Dim arr As Variant
     arr = Array("Role", "TL", "PM", "DM", "A/E", "Civ", "Str", "Arch", _
@@ -298,7 +316,7 @@ Public Sub CreatePDTTable(sht As Worksheet)
         .ShowAutoFilterDropDown = False
     End With
     
-     With target.Offset(-1, 0)
+     With target.Offset(TableInfo.RegionTitle, 0)
         .Value = "Project Team"
         .Font.Bold = True
     End With
@@ -392,7 +410,6 @@ Public Sub CreateButtons(sht As Worksheet)
         .OnAction = "GenerateAllSlides"
     End With
     
-    
     Dim newSheetButton As Shape
     Set newSheetButton = sht.Shapes.AddShape(msoShapeRoundedRectangle, 800, 110, 150, 30)
     With newSheetButton.TextFrame2
@@ -429,7 +446,7 @@ End Sub
 Public Sub CreateCommentsTable(sht As Worksheet)
 
     Dim target As Range
-    Set target = sht.Range("A33")
+    Set target = sht.Range(TARGET_COMMENTS)
 
     Dim arr As Variant
     arr = Array("Show", "Comment")
@@ -441,21 +458,27 @@ Public Sub CreateCommentsTable(sht As Worksheet)
     Set commentTable = ActiveSheet.ListObjects.Add(xlSrcRange, target.CurrentRegion, , xlYes)
     commentTable.Name = AutoincrementTable("Comments")
     With ActiveSheet.ListObjects(commentTable.Name)
-        .TableStyle = "TableStyleDark11"
+        .TableStyle = "TableStyleLight9"
         .ShowAutoFilterDropDown = False
+        With .DataBodyRange
+            .HorizontalAlignment = xlHAlignLeft
+            .VerticalAlignment = xlVAlignCenter
+            .Columns(2).WrapText = True
+        End With
     End With
     
-    With target.Offset(-1, 0)
+    With target.Offset(TableInfo.RegionTitle, 0)
         .Value = "Critical Issues/Updates Table"
         .Font.Bold = True
     End With
+
 
 End Sub
 
 Public Sub CreateDBBSchedule(sht As Worksheet)
 
     Dim target As Range
-    Set target = sht.Range("D2")
+    Set target = sht.Range(TARGET_SCHED)
 
     Dim arr As Variant
     arr = Array("ID", "Task", "Mtg or Submittal", "Review Start", "End")
@@ -463,7 +486,7 @@ Public Sub CreateDBBSchedule(sht As Worksheet)
     
     arr = Array("Kickoff", "Charette", "  " & ChrW(9500) & " Draft PDCR", "  " & ChrW(9500) & " Final", "  " & ChrW(9492) & " Backcheck", _
         "Concept", "  " & ChrW(9492) & " OBR", "Intermediate", "  " & ChrW(9492) & " OBR", "Final", "  " & ChrW(9492) & " OBR", "Backcheck", _
-        "BCOES Cert", "RTA", "Advert")
+        "BCOES Cert", "RTA", "Advertise")
 
     target.Offset(1, 1).Resize(UBound(arr) + 1) = WorksheetFunction.Transpose(arr)
     
@@ -487,7 +510,7 @@ Public Sub CreateDBBSchedule(sht As Worksheet)
     End With
     ApplyTableSecondaryFormats schedTable
     
-    With target.Offset(-1, 0)
+    With target.Offset(TableInfo.RegionTitle, 0)
         .Value = "Project Scheduled"
         .Font.Bold = True
     End With
@@ -501,7 +524,7 @@ End Sub
 Public Sub CreateDBSchedule(sht As Worksheet)
 
     Dim target As Range
-    Set target = sht.Range("D2")
+    Set target = sht.Range(TARGET_SCHED)
 
     Dim arr As Variant
     arr = Array("ID", "Task", "Mtg or Submittal", "Review Start", "End")
@@ -518,7 +541,7 @@ Public Sub CreateDBSchedule(sht As Worksheet)
     Set schedTable = ActiveSheet.ListObjects.Add(xlSrcRange, target.CurrentRegion, , xlYes)
     schedTable.Name = AutoincrementTable("Schedule")
     With ActiveSheet.ListObjects(schedTable.Name)
-        projType = ActiveSheet.ListObjects(1).DataBodyRange.Cells(7, 2)
+        projType = ActiveSheet.ListObjects(1).DataBodyRange.Cells(TableInfo.ClientLine, 2)
         Select Case projType
             Case Is = "Air Force"
                 .TableStyle = AF
@@ -533,13 +556,13 @@ Public Sub CreateDBSchedule(sht As Worksheet)
     End With
     ApplyTableSecondaryFormats schedTable
     
-    With target.Offset(-1, 0)
+    With target.Offset(TableInfo.RegionTitle, 0)
         .Value = "Project Scheduled"
         .Font.Bold = True
     End With
     
     For i = 1 To schedTable.DataBodyRange.Rows.Count
-        schedTable.DataBodyRange.Columns(1).Rows(i) = i
+        schedTable.DataBodyRange.Columns(TableInfo.IDColumn).Rows(i) = i
     Next
 
 End Sub
@@ -557,9 +580,11 @@ End Sub
 
 Public Sub CreateScheduleTable(sht As Worksheet)
     If vbYes = MsgBox("Do you want to overwrite existing schedule (if exists)?", vbYesNo + vbCritical, "Overwrite Warning") Then
-        sht.Columns("D:H").Delete
+        Range(TARGET_SCHED).Offset(TableInfo.RegionTitle, 0).Clear
+        On Error Resume Next
+        sht.ListObjects(TableType.sched).Delete
         Dim contract As String
-        contract = sht.ListObjects(1).DataBodyRange.Cells(8, 2)
+        contract = sht.ListObjects(TableType.info).DataBodyRange.Cells(TableInfo.ContractLine, 2)
         Select Case LCase(contract)
             Case Is = "db"
                 CreateDBSchedule sht

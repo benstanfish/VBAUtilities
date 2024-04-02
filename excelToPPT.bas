@@ -1,11 +1,13 @@
 Attribute VB_Name = "excelToPPT"
 Public Const mod_name As String = "excelToPPT"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "1.3"
+Public Const module_version As String = "1.3.1"
 Public Const module_date As Date = #4/2/2024#
 
 ' REQUIRED REFERENCES:
 ' - Microsoft PowerPoint 16.0 Object Model
+
+Dim fPath As String
 
 Public Enum TableType
     [_First]
@@ -21,21 +23,25 @@ Public Sub GenerateThisSlide()
 End Sub
 
 Public Sub GenerateAllSlides()
-    For i = 2 To ActiveWorkbook.Sheets.Count
+    Application.ScreenUpdating = False
+    For i = 3 To ActiveWorkbook.Sheets.Count
         GenerateSlide ActiveWorkbook.Sheets(i)
-    Next
+    Next i
+    Application.ScreenUpdating = True
 End Sub
 
 Public Sub GenerateSlide(sht As Worksheet)
-
+    
     Dim ppApp As PowerPoint.Application
     Dim ppPres As PowerPoint.Presentation
     Dim ppSlide As PowerPoint.Slide
+    Dim fPath As String
+    Dim fso As FileSystemObject
+    Set fso = New FileSystemObject
     
     On Error GoTo createNew
         Set ppApp = GetObject(, "PowerPoint.Application")
     On Error GoTo 0
-    
 createNew:
     If ppApp Is Nothing Then
         Set ppApp = New PowerPoint.Application
@@ -44,6 +50,18 @@ createNew:
         ppApp.Visible = True
         Set ppPres = ppApp.ActivePresentation
     End If
+    
+    fPath = ppPres.Path
+    
+    Dim sFolders As Variant
+    sFolders = Array("PDFs", "Images")
+    For Each thing In sFolders
+        newPath = fPath & "\" & thing & "\"
+        If Not fso.FolderExists(newPath) Then fso.CreateFolder (newPath)
+    Next
+    
+    fso.BuildPath Path:=fPath, Name:="PDFs"
+    fso.BuildPath Path:=fPath, Name:="Images"
     
     Dim ppLayout As CustomLayout
     Set ppLayout = ppPres.SlideMaster.CustomLayouts(7)  ' 7 = blank slide... typically, lol
@@ -67,7 +85,7 @@ createNew:
         With projectTitle.TextFrame2
             .WordWrap = False
             With .TextRange
-                .Text = sht.ListObjects(TableType.info).Range(2, 2) 'Project Title
+                .Text = sht.ListObjects(TableType.info).Range(TableInfo.ProjectNameLine, 2) 'Project Title
                 .Font.Name = "Aptos Narrow"
                 .Font.Size = 18
                 .Font.Bold = True
@@ -114,7 +132,7 @@ createNew:
             pdt(i - 1) = aCell.Value & ": " & aCell.Offset(0, 1).Value
         Next
     
-        Set pdtRoster = .Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
+        Set pdtRoster = ppSlide.Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
         With pdtRoster.TextFrame2
             .Column.Number = 3
             .WordWrap = True
@@ -127,23 +145,34 @@ createNew:
             End With
         End With
         
-        ' Highlight my own name
-        Dim tRng As TextRange
-        Set tRng = pdtRoster.TextFrame.TextRange
-        Set foundText = tRng.Find(FindWhat:="TL: B Fisher")
-        With foundText
-            .Font.Bold = True
-        End With
-        
-        ' Ghost N/As
-        Set foundText = tRng.Find(FindWhat:="N/A")
-        Do While Not (foundText Is Nothing)
-            foundText.Font.Color = RGB(192, 192, 192)
-            With foundText
-                Set foundText = tRng.Find(FindWhat:="N/A", After:=.Start + .Length - 1)
-            End With
-        Loop
+
     End With
+    
+    ' Highlight my own name
+    Dim tRng As TextRange
+    Set tRng = pdtRoster.TextFrame.TextRange
+    On Error GoTo warpA
+    
+    Set foundText = tRng.Find(FindWhat:="TL: B Fisher")
+    foundText.Font.Bold = True
+        
+
+warpA:
+    On Error GoTo warpB
+    ' Ghost N/As
+    Set foundText = tRng.Find(FindWhat:="N/A")
+    Do While Not (foundText Is Nothing)
+        foundText.Font.Color = webcolors.SLATEGRAY
+        Set foundText = tRng.Find(FindWhat:="N/A", After:=foundText.Start + foundText.Length - 1)
+    Loop
+        
+warpB:
+    Set foundText = tRng.Find(FindWhat:="TBD")
+    Do While Not (foundText Is Nothing)
+        foundText.Font.Color = webcolors.ORANGERED
+        Set foundText = tRng.Find(FindWhat:="TBD", After:=foundText.Start + foundText.Length - 1)
+    Loop
+    On Error GoTo 0
     
     ' Add Project Info
     Dim projectInfo As PowerPoint.Shape
@@ -333,6 +362,10 @@ createNew:
     
     Application.CutCopyMode = False
     
+    ppSlide.Export Filename:=fPath & "\PDFs\" & sht.Name & ".pdf", FilterName:="PDF"
+    ppSlide.Export Filename:=fPath & "\Images\" & sht.Name & ".jpg", FilterName:="JPG"
+    
+    Set fso = Nothing
     Set ppApp = Nothing
     Set ppPres = Nothing
     Set ppLayout = Nothing

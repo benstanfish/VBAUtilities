@@ -24,10 +24,15 @@ Public Const module_license As String = "GNU General Public License, v3.0"
 '***********************************************************************
 '                           Utility Functions
 '***********************************************************************
-Public Sub MemorySaver(Optional isEngaged As Boolean = False)
+Public Sub MemorySaver(Optional isEngaged As Boolean = True)
     Application.ScreenUpdating = isEngaged
     Application.EnableEvents = isEngaged
     Application.DisplayAlerts = isEngaged
+End Sub
+
+Public Sub MemoryRestore()
+    ' Alias method
+    MemorySaver False
 End Sub
 
 Public Function ParseToArray(parseString As String, _
@@ -54,9 +59,9 @@ Public Function RecastArray(arr As Variant, _
     ' Recast the values of an array to another value type.
     ' By default will recast values as long
     
-    Dim cnt As Long, i As Long
-    cnt = UBound(arr) - LBound(arr) ' 0-Based
-    ReDim arr2(0 To cnt)
+    Dim Cnt As Long, i As Long
+    Cnt = UBound(arr) - LBound(arr) ' 0-Based
+    ReDim arr2(0 To Cnt)
     Select Case castTo
         Case Is = vbInteger
             For i = LBound(arr2) To UBound(arr2)

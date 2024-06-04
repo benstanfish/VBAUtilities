@@ -8,10 +8,12 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Private pInteriorColor As Long
+
 Private pFontName As String
 Private pFontColor As Long
 Private pFontBold As Boolean
 Private pFontSize As Double
+
 
 Property Let InteriorColor(userColor As Long)
     pInteriorColor = userColor
@@ -49,6 +51,8 @@ Property Get Bold() As Boolean
     Bold = pFontBold
 End Property
 
+
+
 Private Function ContrastText(bgColor As Long, _
     Optional darkColor As Long = vbBlack, _
     Optional lightColor As Long = vbWhite) As Long
@@ -72,7 +76,7 @@ Private Sub Class_Initialize()
     Me.fontSize = 10
 End Sub
 
-Public Sub Init(intColor As Long, Optional fName As String = "Arial", _
+Public Sub INIT(intColor As Long, Optional fName As String = "Arial", _
                 Optional fSize As Double = 10, Optional fBold As Boolean = False)
 
     Me.InteriorColor = intColor

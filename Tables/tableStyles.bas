@@ -63,7 +63,7 @@ Public Sub CreateTableStyle(styleName As String, wb As Workbook)
             .Font.Color = ContrastText(.Interior.Color)
             .Font.Bold = True
             'NOTE: You cannot edit the header row height or font size in the
-            ' table style definition.
+            ' table style defINITion.
             If HEADER_ROW_VRULE Then
                 With .Borders(xlInsideVertical)
                     .Color = ContrastText(wb.TableStyles(styleName).TableStyleElements(xlHeaderRow).Interior.Color)

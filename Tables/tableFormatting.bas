@@ -9,7 +9,7 @@ Public Const module_date As Date = #6/4/2024#
 Public Const module_notes As String = _
     "This module is necessary for setting table related styles that " & _
     "cannot be set in the Workbook TableStyle element. This means " & _
-    "the formatting must be done after table creating and initial " & _
+    "the formatting must be done after table creating and INITial " & _
     "styling, and is set on the Worksheet level, not at the Workbook."
 Public Const module_license As String = "GNU General Public License, v3.0"
 
@@ -25,7 +25,7 @@ Public Const module_license As String = "GNU General Public License, v3.0"
 Public Const TYPICAL_FONT_NAME As String = "Arial"
 Public Const TYPICAL_FONT_SIZE As Long = 10
 
-
+Public Const ROW_PADDING As Long = 6
 
 '***********************************************************************
 '                  Utility Functions & Class Factories
@@ -57,7 +57,7 @@ Public Function CreateFormatConfig(InteriorColor As Long, _
     ' This is a class factory to speed up instantiation.
     Dim style As FormatConfig
     Set style = New FormatConfig
-    style.Init InteriorColor, fontName, fontSize, isBold
+    style.INIT InteriorColor, fontName, fontSize, isBold
     Set CreateFormatConfig = style
 End Function
 
@@ -70,22 +70,6 @@ Private Sub ResetFonts()
         .Font.Name = TYPICAL_FONT_NAME
         .Font.Size = TYPICAL_FONT_SIZE
     End With
-End Sub
-
-Private Sub FormatTableAlignments()
-    Dim aTable As ListObject
-    Set aTable = ActiveSheet.ListObjects(1)
-    With aTable
-        With .HeaderRowRange
-            .HorizontalAlignment = xlHAlignLeft
-            .VerticalAlignment = xlVAlignBottom
-        End With
-        With .DataBodyRange
-            .HorizontalAlignment = xlHAlignLeft
-            .VerticalAlignment = xlVAlignTop
-        End With
-    End With
-    Set aTable = Nothing
 End Sub
 
 Public Sub ResetAllColumnWidths()
@@ -101,7 +85,6 @@ Public Sub SetColumnWidths(aTable As ListObject, _
     Dim cols As Variant, widths As Variant
     cols = ParseToArray(columnRef)
     widths = RecastArray(ParseToArray(columnWidths), vbDouble)
-    
     Dim i As Long
     For i = LBound(cols) To UBound(cols)
         If IsNumeric(cols(i)) Then
@@ -117,6 +100,95 @@ Public Sub AutoFitColumnWidths(aTable As ListObject)
     aTable.DataBodyRange.Columns.EntireColumn.AutoFit
 End Sub
 
+Public Sub WrapTextInColumns(aTable As ListObject, _
+                             Optional wrapColumns As String = "", _
+                             Optional isWrapped As Boolean = True)
+    ' Assumes wrapColumns is a parsable string of either column names
+    ' or indicies of columns. If nothing provided, all columns are wrapped.
+    ' This sub also UNWRAPS columns by setting the isWrapped to False
+    
+    If wrapColumns <> "" Then
+        Dim cols As Variant
+        cols = ParseToArray(wrapColumns)
+        Dim i As Long
+        For i = LBound(cols) To UBound(cols)
+            If IsNumeric(cols(i)) Then
+                aTable.DataBodyRange.Columns(CLng(cols(i))).WrapText = isWrapped
+            Else
+                aTable.ListColumns(cols(i)).DataBodyRange.WrapText = isWrapped
+            End If
+        Next
+    Else
+        aTable.DataBodyRange.WrapText = isWrapped
+    End If
+End Sub
+
+Public Sub HorizontalAlignColumns(aTable As ListObject, _
+                             Optional targetColumns As String = "", _
+                             Optional hAlign As XlHAlign = xlHAlignLeft)
+    ' Align columns by name or index horizontally. If no columns specified,
+    ' will align the whole table to the provided value.
+    
+    If targetColumns <> "" Then
+        Dim cols As Variant
+        cols = ParseToArray(targetColumns)
+        Dim i As Long
+        For i = LBound(cols) To UBound(cols)
+            If IsNumeric(cols(i)) Then
+                aTable.Columns(CLng(cols(i))).DataBodyRange.HorizontalAlignment = hAlign
+            Else
+                aTable.ListColumns(cols(i)).DataBodyRange.HorizontalAlignment = hAlign
+            End If
+        Next
+    Else
+        aTable.DataBodyRange.HorizontalAlignment = hAlign
+    End If
+End Sub
+
+Public Sub VerticalAlignColumns(aTable As ListObject, _
+                             Optional targetColumns As String = "", _
+                             Optional vAlign As XlVAlign = xlVAlignTop)
+    ' Align columns by name or index horizontally. If no columns specified,
+    ' will align the whole table to the provided value.
+    
+    If targetColumns <> "" Then
+        Dim cols As Variant
+        cols = ParseToArray(targetColumns)
+        Dim i As Long
+        For i = LBound(cols) To UBound(cols)
+            If IsNumeric(cols(i)) Then
+                aTable.Columns(CLng(cols(i))).DataBodyRange.VerticalAlignment = vAlign
+            Else
+                aTable.ListColumns(cols(i)).DataBodyRange.VerticalAlignment = vAlign
+            End If
+        Next
+    Else
+        aTable.DataBodyRange.VerticalAlignment = vAlign
+    End If
+End Sub
+
+Public Sub ResetTableRowHeights(aTable As ListObject)
+    Call WrapTextInColumns(aTable, , False) 'Flatten rows
+    aTable.DataBodyRange.Rows.AutoFit
+End Sub
+
+Public Sub ApplyComfyRowsToTable(aTable As ListObject, _
+                                 Optional rowPadding As Double = ROW_PADDING, _
+                                 Optional wrapColumns As String = "", _
+                                 Optional maxHeight As Double = 0)
+    Call utilities.MemorySaver
+    
+    Call ResetTableRowHeights(aTable)
+    Call WrapTextInColumns(aTable, wrapColumns)
+    aTable.DataBodyRange.Rows.AutoFit
+    
+    Dim aRow As Range, newHeight As Double
+    For Each aRow In aTable.DataBodyRange.Rows
+        aRow.RowHeight = aRow.RowHeight + rowPadding
+    Next
+
+    Call utilities.MemoryRestore
+End Sub
 
 
 '***********************************************************************

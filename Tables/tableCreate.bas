@@ -61,7 +61,7 @@ End Function
 
 
 '***********************************************************************
-'                            Main Functions
+'                      Create and Delete Functions
 '***********************************************************************
 Public Function CreateTableHeaderFromString(anchorCell As Range, _
                                        fieldsString As String, _
@@ -78,7 +78,7 @@ Public Function CreateTableHeaderFromString(anchorCell As Range, _
     arr = utilities.ParseToArray(fieldsString)
     fieldCount = UBound(arr) - LBound(arr) + 1          'Add 1 to get into Base 1
     Set headerRange = anchorCell.Resize(1, fieldCount)
-    headerRange.value = arr
+    headerRange.Value = arr
     
     CreateTableStyle styleName, wb
     
@@ -94,5 +94,22 @@ Public Function CreateTableHeaderFromString(anchorCell As Range, _
     Set headerRange = Nothing
     Set arr = Nothing
 End Function
+
+Public Sub DeleteTable(aTable As ListObject)
+    aTable.Delete
+End Sub
+
+Public Sub ConvertTableToRange(aTable As ListObject)
+    ' NOTE: You have to wrap this function in a test
+    ' to see if the aTable ListObject is NOT NOTHING
+    Dim headerRng As Range
+    Set headerRng = aTable.HeaderRowRange
+    
+    aTable.Unlist   'This converts the Table to a Simple Range
+    
+    headerRng.AutoFilter
+End Sub
+
+
 
 

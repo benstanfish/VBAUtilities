@@ -269,7 +269,38 @@ Private Sub Test_ApplyDefaultValue()
     ApplyDefaultValue "No", ActiveSheet.ListObjects(1), "Status", False
 End Sub
 
+Private Sub Test_ApplyBorderAroundTable()
+    ApplyBorderAroundTable ActiveSheet.ListObjects(1), , , False
+End Sub
 
+Private Sub Test_InsertFormulaToColumn()
+    Dim aFormula As Variant
+    aFormula = "=IF($H2>=50,TRUE,"""")"
+    InsertFormulaToColumn ActiveSheet.ListObjects(1), "Formula", aFormula
+End Sub
 
+Private Sub Test_SetContinuationText()
+    SetContinuationText ActiveSheet.ListObjects(1), , hideContinuations:=False
+End Sub
 
+Private Sub Test_GetColumnValue()
+    Debug.Print ActiveSheet.ListObjects(1).ListColumns("Discipline").DataBodyRange.Column
 
+End Sub
+
+Private Sub Test_ApplyLadderLinesToTable()
+    ApplyLadderLinesToTable ActiveSheet.ListObjects(1), "Category", "ID", , , True
+    ApplyBorderAroundTable ActiveSheet.ListObjects(1)
+    Call utilities.MemorySaver
+    Call tableDefaults.AutoNumberColumn(ActiveSheet.ListObjects(1), "Line")
+    Call tableDefaults.AutoNumberColumn(ActiveSheet.ListObjects(1), "ID")
+    Call utilities.MemoryRestore
+End Sub
+
+Private Sub Test_BorderConfig()
+    Dim bc As BorderConfig
+    Set bc = New BorderConfig
+    bc.SetStyle xlEdgeLeft, vbBlue
+    
+    bc.ReadStyles
+End Sub

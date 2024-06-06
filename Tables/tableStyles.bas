@@ -4,8 +4,8 @@ Attribute VB_Name = "TableStyles"
 '***********************************************************************
 Public Const module_name As String = "tableStyles"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "2.1.2"
-Public Const module_date As Date = #6/4/2024#
+Public Const module_version As String = "2.1.4"
+Public Const module_date As Date = #6/5/2024#
 Public Const module_notes As String = _
     "This module creates TableStyles which are configurations set on " & _
     "the Workbook level, and are applied equally over all Worksheets."
@@ -48,7 +48,8 @@ End Function
 '***********************************************************************
 '                            Main Functions
 '***********************************************************************
-Public Sub CreateTableStyle(styleName As String, wb As Workbook)
+Public Sub CreateTableStyle(styleName As String, wb As Workbook, _
+                            Optional isRuled As Boolean = True)
     ' This function will create the TableStyle of styleName, or if it
     ' exists it will reset the formats to the values in this function.
 
@@ -75,12 +76,14 @@ Public Sub CreateTableStyle(styleName As String, wb As Workbook)
         End With
         .TableStyleElements(xlRowStripe1).Clear
         With .TableStyleElements(xlRowStripe1)
-            For i = xlEdgeTop To xlEdgeTop
-                With .Borders(i)
-                    .Color = TABLE_HRULE_COLOR
-                    .Weight = xlThin
-                End With
-            Next
+            If isRuled Then
+                For i = xlEdgeTop To xlEdgeTop
+                    With .Borders(i)
+                        .Color = TABLE_HRULE_COLOR
+                        .Weight = xlThin
+                    End With
+                Next
+            End If
             If TABLE_VRULE Then
                 With .Borders(xlInsideVertical)
                     .Color = TABLE_VRULE_COLOR
@@ -92,12 +95,14 @@ Public Sub CreateTableStyle(styleName As String, wb As Workbook)
         End With
         .TableStyleElements(xlRowStripe2).Clear
         With .TableStyleElements(xlRowStripe2)
-            For i = xlEdgeTop To xlEdgeTop
-                With .Borders(i)
-                    .Color = TABLE_HRULE_COLOR
-                    .Weight = xlThin
-                End With
-            Next
+            If isRuled Then
+                For i = xlEdgeTop To xlEdgeTop
+                    With .Borders(i)
+                        .Color = TABLE_HRULE_COLOR
+                        .Weight = xlThin
+                    End With
+                Next
+            End If
             If TABLE_VRULE Then
                 With .Borders(xlInsideVertical)
                     .Color = TABLE_VRULE_COLOR

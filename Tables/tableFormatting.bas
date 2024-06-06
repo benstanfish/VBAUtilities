@@ -4,8 +4,8 @@ Attribute VB_Name = "tableFormatting"
 '***********************************************************************
 Public Const module_name As String = "tableFormatting"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "2.1.2"
-Public Const module_date As Date = #6/4/2024#
+Public Const module_version As String = "2.1.5"
+Public Const module_date As Date = #6/6/2024#
 Public Const module_notes As String = _
     "This module is necessary for setting table related styles that " & _
     "cannot be set in the Workbook TableStyle element. This means " & _
@@ -26,6 +26,9 @@ Public Const TYPICAL_FONT_NAME As String = "Arial"
 Public Const TYPICAL_FONT_SIZE As Long = 10
 
 Public Const ROW_PADDING As Long = 6
+
+Public Const DEFAULT_BORDER_COLOR As Long = webcolors.DODGERBLUE
+Public Const DEFAULT_LADDER_LINE_COLOR As Long = webcolors.GAINSBORO
 
 '***********************************************************************
 '                  Utility Functions & Class Factories
@@ -190,6 +193,19 @@ Public Sub ApplyComfyRowsToTable(aTable As ListObject, _
     Call utilities.MemoryRestore
 End Sub
 
+Public Sub ApplyBorderAroundTable(aTable As ListObject, _
+                                  Optional borderColor As Long = DEFAULT_BORDER_COLOR, _
+                                  Optional borderWeight As XlBorderWeight = xlMedium, _
+                                  Optional hasBorder As Boolean = True)
+    ' Applies a border around the entire table. NOTE: you can remove the border by setting
+    ' the hasBorder value to FALSE
+    
+    Dim lineStyleValue As XlLineStyle
+    If hasBorder Then lineStyleValue = xlContinuous Else lineStyleValue = xlLineStyleNone
+    aTable.HeaderRowRange.BorderAround LineStyle:=lineStyleValue, Weight:=borderWeight, Color:=borderColor
+    aTable.DataBodyRange.BorderAround LineStyle:=lineStyleValue, Weight:=borderWeight, Color:=borderColor
+End Sub
+
 
 '***********************************************************************
 '              Data Validation and Conditional Formatting
@@ -302,5 +318,162 @@ Sub ApplyConditionalFormattingToTable(aTable As ListObject, _
     ' Remove dummy row needed for adding to empty table
     If tempRow Then aTable.ListRows.Item(1).Delete
     
+End Sub
+
+
+'***********************************************************************
+'                      Ladder Lines & Continuations
+'***********************************************************************
+Private Sub GetAllHBreakCells()
+    ActiveWindow.View = xlPageBreakPreview
+    For i = 1 To ActiveSheet.HPageBreaks.Count
+        Debug.Print ActiveSheet.HPageBreaks(i).Location.Address, ActiveSheet.HPageBreaks(i).Location.Row
+    Next
+End Sub
+
+Public Sub SetContinuationText(aTable As ListObject, _
+                               Optional targetColumn As Variant = "", _
+                               Optional hideContinuations As Boolean = False)
+    
+    
+    Dim ws As Worksheet
+    Dim targetColumnNumber As Long
+    Dim columnAHBreakCell As Range
+    Dim currHBreakCell As Range
+    Dim prevNonEmptyCell As Range
+    Dim suffix As String
+
+    suffix = " (cont.)"
+    
+    Call utilities.MemorySaver
+    ' Clear out continuations of previous runs
+    If targetColumn = "" Then targetColumn = 1
+    For Each aCell In aTable.ListColumns(targetColumn).DataBodyRange
+        If Right(aCell, Len(suffix)) = suffix Then aCell.Value = ""
+    Next
+
+    ' If you set hideContinuations = True then the continuations will be deleted
+    ' based on the code in the previous statement above.
+    If hideContinuations = False Then
+        ' You must set to Page Break View for the HPageBreaks function to work.
+        ActiveWindow.View = xlPageBreakPreview
+        
+        ' Set continuation in all horizontal page break cells of targetColumn
+        Set ws = aTable.Parent
+        targetColumnNumber = aTable.ListColumns(targetColumn).DataBodyRange.Column
+        For i = 1 To ws.HPageBreaks.Count
+            Set columnAHBreakCell = ws.HPageBreaks(i).Location
+            Set currHBreakCell = ws.Cells(columnAHBreakCell.Row, targetColumnNumber)
+            Set prevNonEmptyCell = currHBreakCell.End(xlUp)
+            
+            If (Right(currHBreakCell, Len(suffix)) = suffix) Or _
+                (currHBreakCell.Value = "") Then
+                currHBreakCell.Value = prevNonEmptyCell.Value & suffix
+            End If
+        Next
+    
+        Set ws = Nothing
+        ActiveWindow.View = xlNormalView
+    End If
+    Call utilities.MemoryRestore
+End Sub
+
+Public Sub ApplyLadderLinesToTable(aTable As ListObject, _
+                                   firstLadderColumn As Variant, _
+                                   firstRestColumn As Variant, _
+                                   Optional ladderLineColor As Long = DEFAULT_LADDER_LINE_COLOR, _
+                                   Optional hasVerticalBorderInLadderRange As Boolean = True, _
+                                   Optional preLadderRegionIsRuled As Boolean = True)
+    ' This function creates ladder lines in a given table. The TableStyle of
+    ' the table should not have any inside lines, as this cannot override those
+    Dim ws As Worksheet
+    Dim ladderRange As Range
+    Dim restRange As Range
+    Dim preLadderRange As Range
+    
+    Call utilities.MemorySaver
+    
+    Set ws = aTable.Parent
+    Set ladderRange = ws.Range(aTable.ListColumns(firstLadderColumn).DataBodyRange, _
+                        aTable.ListColumns(firstRestColumn).DataBodyRange.Offset(, -1))
+
+    Set restRange = ws.Range(aTable.ListColumns(firstRestColumn).DataBodyRange, _
+                        aTable.DataBodyRange.Columns(aTable.DataBodyRange.Columns.Count))
+    If ladderRange.Columns(1).Column > aTable.ListColumns(1).DataBodyRange.Column Then
+        Set preLadderRange = ws.Range(aTable.ListColumns(1).DataBodyRange, _
+            aTable.ListColumns(firstLadderColumn).DataBodyRange.Offset(, -1))
+    End If
+    
+    ' Reset all interior lines
+    For i = xlInsideVertical To xlInsideHorizontal
+        aTable.DataBodyRange.Borders(i).LineStyle = xlLineStyleNone
+    Next
+    
+    Dim ladderRangeFields As Range
+    Set ladderRangeFields = ws.Range(ladderRange(1).Offset(-1, 0), restRange(1).Offset(-1, -1))
+    For Each aCell In ladderRangeFields
+        Call tableFormatting.SetContinuationText(aTable:=aTable, targetColumn:=aCell.Value)
+    Next
+    
+    Dim currCol As Long, currColVal As String, rmdCol As Long
+    Dim currRow As Range
+    For i = 1 To ladderRange.Columns.Count
+        currCol = i
+        rmdCol = ladderRange.Columns.Count - currCol
+        For j = 1 To ladderRange.Columns(i).Rows.Count
+            currColVal = ladderRange.Columns(i).Rows(j).Value
+            If currColVal <> "" And Right(currColVal, Len("(cont.)")) <> "(cont.)" Then
+                Set currRow = ws.Range(ladderRange.Columns(i).Rows(j), _
+                    ladderRange.Columns(i).Rows(j).Offset(0, rmdCol))
+                With currRow.Borders(xlEdgeTop)
+                    .Color = DEFAULT_LADDER_LINE_COLOR
+                    .LineStyle = xlContinuous
+                    .Weight = xlThin
+                End With
+            End If
+        Next
+    Next
+    If hasVerticalBorderInLadderRange Then
+        With ladderRange.Borders(xlInsideVertical)
+            .Color = DEFAULT_LADDER_LINE_COLOR
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+    End If
+    
+    ' Format the Rest range
+    With restRange.Borders(xlInsideHorizontal)
+        .Color = DEFAULT_LADDER_LINE_COLOR
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+    End With
+    With aTable.ListColumns(firstRestColumn).DataBodyRange.Borders(xlEdgeLeft)
+        .Color = DEFAULT_LADDER_LINE_COLOR
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+    End With
+
+    ' Format the Ladder Range
+    With aTable.ListColumns(firstLadderColumn).DataBodyRange.Borders(xlEdgeLeft)
+        .Color = DEFAULT_LADDER_LINE_COLOR
+        .LineStyle = xlContinuous
+        .Weight = xlThin
+    End With
+    
+    ' Format preLadderRange if it's not nothing
+    If Not preLadderRange Is Nothing And preLadderRegionIsRuled Then
+        With preLadderRange.Borders(xlInsideHorizontal)
+            .Color = DEFAULT_LADDER_LINE_COLOR
+            .LineStyle = xlContinuous
+            .Weight = xlThin
+        End With
+    End If
+    
+    Call utilities.MemoryRestore
+    
+    Set ladderRange = Nothing
+    Set restRange = Nothing
+    Set preLadderRange = Nothing
+    Set ws = Nothing
 End Sub
 

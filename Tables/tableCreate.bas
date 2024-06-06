@@ -4,8 +4,8 @@ Attribute VB_Name = "tableCreate"
 '***********************************************************************
 Public Const module_name As String = "tableCreate"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "2.1.2"
-Public Const module_date As Date = #6/4/2024#
+Public Const module_version As String = "2.1.4"
+Public Const module_date As Date = #6/5/2024#
 Public Const module_notes As String = ""
 Public Const module_license As String = "GNU General Public License, v3.0"
 
@@ -80,7 +80,7 @@ Public Function CreateTableHeaderFromString(anchorCell As Range, _
     Set headerRange = anchorCell.Resize(1, fieldCount)
     headerRange.Value = arr
     
-    CreateTableStyle styleName, wb
+    CreateTableStyle styleName, wb, isRuled:=True
     
     If ItersectsWithExistingTable(headerRange) = False Then
         ws.ListObjects.Add SourceType:=xlSrcRange, _
@@ -94,6 +94,41 @@ Public Function CreateTableHeaderFromString(anchorCell As Range, _
     Set headerRange = Nothing
     Set arr = Nothing
 End Function
+
+Public Function CreateLadderTableHeaderFromString(anchorCell As Range, _
+                                       fieldsString As String, _
+                                       Optional tableName As String = DEFAULT_TABLE_NAME) As Range
+    ' Function that accepts a target cell, and parsable string of column
+    ' field names, then pastes and turns the range into a ListObject header.
+    
+    Dim arr As Variant, fieldCount As Long, headerRange As Range
+    Dim ws As Worksheet, wb As Workbook
+    Set ws = anchorCell.Parent
+    Set wb = ws.Parent
+    
+    arr = utilities.ParseToArray(fieldsString)
+    fieldCount = UBound(arr) - LBound(arr) + 1          'Add 1 to get into Base 1
+    Set headerRange = anchorCell.Resize(1, fieldCount)
+    headerRange.Value = arr
+    
+    Dim styleName As String: styleName = "LadderLinesTable"
+    CreateTableStyle styleName:=styleName, wb:=wb, isRuled:=False
+    
+    If ItersectsWithExistingTable(headerRange) = False Then
+        ws.ListObjects.Add SourceType:=xlSrcRange, _
+                           Source:=headerRange, _
+                           xlListObjectHasHeaders:=xlYes, _
+                           TableStyleName:=styleName
+    End If
+    Set CreateLadderTableHeaderFromString = headerRange
+    Set ws = Nothing
+    Set headerRange = Nothing
+    Set arr = Nothing
+End Function
+
+Private Sub Test_CreateLadderTableHeaderFromString()
+    CreateLadderTableHeaderFromString Range("A1"), "ID, Topic, Subtopic, Ref, Comment, Action"
+End Sub
 
 Public Sub DeleteTable(aTable As ListObject)
     aTable.Delete

@@ -4,8 +4,8 @@ Attribute VB_Name = "tableDefaults"
 '***********************************************************************
 Public Const module_name As String = "tableDefaults"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "2.1.3"
-Public Const module_date As Date = #6/4/2024#
+Public Const module_version As String = "2.1.4"
+Public Const module_date As Date = #6/5/2024#
 Public Const module_notes As String = _
     "This module provides functions for default or auto cell values"
 Public Const module_license As String = "GNU General Public License, v3.0"
@@ -114,5 +114,13 @@ Public Function ApplyDefaultValue(defaultValue As Variant, _
     End If
     Call utilities.MemoryRestore
 End Function
+
+Public Sub InsertFormulaToColumn(aTable As ListObject, _
+                                 columnName As Variant, _
+                                 formulaString As Variant)
+    ' This will insert a formula into each cell of the specified
+    ' column in the specified Table. For example: aFormula = "=IF($H2>=50,TRUE,"""")"
+    aTable.ListColumns(columnName).DataBodyRange.Formula2 = formulaString
+End Sub
 
 

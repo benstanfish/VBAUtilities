@@ -1,11 +1,13 @@
 Attribute VB_Name = "excelToPPT"
 Public Const mod_name As String = "excelToPPT"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "1.3.1"
-Public Const module_date As Date = #4/2/2024#
+Public Const module_version As String = "1.3.7"
+Public Const module_date As Date = #2/10/2025#
 
 ' REQUIRED REFERENCES:
 ' - Microsoft PowerPoint 16.0 Object Model
+
+Public Const CHIEF_STAR = 9733
 
 Dim fPath As String
 
@@ -19,18 +21,74 @@ Public Enum TableType
 End Enum
 
 Public Sub GenerateThisSlide()
+    Dim staTime As Long, endTime As Long
+    staTime = Timer
+    
     GenerateSlide ActiveSheet
+    
+    endTime = Timer
+    MsgBox "Total time in sec: " & endTime - staTime, vbInformation + vbOKOnly, "Total Time Dialog"
 End Sub
 
 Public Sub GenerateAllSlides()
+    Dim staTime As Long, endTime As Long, slideCnt As Long, msg As String
+    staTime = Timer
+    
     Application.ScreenUpdating = False
-    For i = 3 To ActiveWorkbook.Sheets.Count
-        GenerateSlide ActiveWorkbook.Sheets(i)
+    Application.EnableEvents = False
+    Application.DisplayAlerts = True
+
+    Dim sht As Worksheet
+    For i = 1 To ActiveWorkbook.Sheets.Count
+        Set sht = ActiveWorkbook.Sheets(i)
+        If sht.Visible = xlSheetVisible And Left(sht.Name, 1) <> "_" Then
+            GenerateSlide sht
+            slideCnt = slideCnt + 1
+        End If
     Next i
+
     Application.ScreenUpdating = True
+    Application.EnableEvents = True
+    Application.DisplayAlerts = False
+    
+    endTime = Timer
+    msg = "Total time: " & CLng(endTime - staTime) & " sec" & vbCrLf & _
+            slideCnt & " slides at " & CLng(endTime - staTime) / slideCnt & " sec/slide"
+    MsgBox msg, vbInformation + vbOKOnly, "Total Time Dialog"
 End Sub
 
-Public Sub GenerateSlide(sht As Worksheet)
+Private Sub CreateFolderLinkIcon(ByRef sh As Worksheet, ByRef sl As PowerPoint.Slide)
+
+    Dim myLink As String
+    Dim linkCell As Range
+    
+    Set linkCell = sh.Range("B" & TableInfo.HyperlinkLine + 1)
+    If linkCell = vbEmpty Then
+    Else
+        Dim sourceIcon As Shape, destIcon As Shape
+        Set sourceIcon = IconSheet.Shapes("FolderIcon")
+        sourceIcon.CopyPicture
+        
+        With sl
+            .Shapes.Paste
+            With .Shapes(.Shapes.Count)
+                .Top = Application.InchesToPoints(1.8)
+                .Left = Application.InchesToPoints(7.625)
+                .ActionSettings(ppMouseClick).Hyperlink.Address = linkCell.Value
+            End With
+        End With
+        
+'        With sh
+'            .Paste
+'            .Hyperlinks.Add _
+'                Anchor:=.Shapes(.Shapes.Count), _
+'                Address:=linkCell.Value
+'        End With
+    End If
+
+End Sub
+
+Public Sub GenerateSlide(sht As Worksheet, Optional insertAsNext As Boolean = False)
     
     Dim ppApp As PowerPoint.Application
     Dim ppPres As PowerPoint.Presentation
@@ -66,8 +124,13 @@ createNew:
     Dim ppLayout As CustomLayout
     Set ppLayout = ppPres.SlideMaster.CustomLayouts(7)  ' 7 = blank slide... typically, lol
     
-    Set ppSlide = ppPres.Slides.AddSlide(Index:=ppPres.Slides.Count + 1, pCustomLayout:=ppLayout)
-    ppSlide.Name = "Tech Lead Slide " & ppPres.Slides.Count + 1
+    If insertAsNext = False Then
+        Set ppSlide = ppPres.Slides.AddSlide(Index:=ppPres.Slides.Count + 1, pCustomLayout:=ppLayout)
+    Else
+        Set ppSlide = ppPres.Slides.AddSlide(Index:=ppApp.ActiveWindow.View.Slide.SlideIndex + 1, pCustomLayout:=ppLayout)
+    End If
+    'ppSlide.Name = "Tech Lead Slide " & ppPres.Slides.Count + 1
+    ppSlide.Name = sht.ListObjects(TableType.info).Range(TableInfo.ProjectNameLine, 2)
     ppSlide.Select
     
     Dim oLeft As Long
@@ -108,17 +171,17 @@ createNew:
                 .Text = "P2#: " & sht.ListObjects(TableType.info).Range(TableInfo.P2Line, 2)
                 .Font.Name = "Aptos Display"
                 .Font.Size = 12
-                .Font.Bold = False
+                .Font.Bold = True
             End With
         End With
     End With
-    
+
     ' Add the Project Design Team
     Dim pdtRoster As PowerPoint.Shape
     With ppSlide
         oLeft = Application.InchesToPoints(0.3)
         oTop = Application.InchesToPoints(0.75)
-        oWidth = Application.InchesToPoints(6.25)
+        oWidth = Application.InchesToPoints(7.25)
         oHeight = Application.InchesToPoints(1.25)
         
         Dim pdt As Variant
@@ -134,7 +197,11 @@ createNew:
     
         Set pdtRoster = ppSlide.Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
         With pdtRoster.TextFrame2
-            .Column.Number = 3
+            If UBound(pdt) > 16 Then
+                .Column.Number = 4
+            Else
+                .Column.Number = 3
+            End If
             .WordWrap = True
             .AutoSize = msoAutoSizeNone
             With .TextRange
@@ -157,6 +224,52 @@ createNew:
     foundText.Font.Bold = True
         
 
+    ' Add Star Statement
+    Dim starLabel As PowerPoint.Shape
+    With ppSlide
+        oLeft = Application.InchesToPoints(0.275)
+        oTop = Application.InchesToPoints(1.9)
+        oWidth = Application.InchesToPoints(7.25)
+        oHeight = Application.InchesToPoints(1.25)
+        
+        Set starLabel = .Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
+        With starLabel.TextFrame2
+            .WordWrap = False
+            With .TextRange
+                .ParagraphFormat.Alignment = msoAlignLeft
+                .Text = ChrW(CHIEF_STAR) & " indicates chief serving as SME"
+                .Font.Name = "Aptos Display"
+                .Font.Size = 9
+                .Font.Bold = False
+                .Font.Fill.ForeColor.RGB = webcolors.SLATEGRAY
+            End With
+        End With
+    End With
+
+    ' Add Slide Creation Timestamp
+    Dim timestampLabel As PowerPoint.Shape
+    With ppSlide
+        oLeft = Application.InchesToPoints(0.4)
+        oTop = Application.InchesToPoints(6.8)
+        oWidth = Application.InchesToPoints(7.25)
+        oHeight = Application.InchesToPoints(1.25)
+        
+        Set timestampLabel = .Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
+        With timestampLabel.TextFrame2
+            .WordWrap = False
+            With .TextRange
+                .ParagraphFormat.Alignment = msoAlignLeft
+                .Text = "Slide generated by " & Application.UserName & " on " & CStr(Now) & " (JST)"
+                .Font.Name = "Aptos Light"
+                .Font.Size = 9
+                .Font.Bold = False
+                .Font.Fill.ForeColor.RGB = webcolors.SLATEGRAY
+            End With
+        End With
+    End With
+
+    CreateFolderLinkIcon sht, ppSlide
+
 warpA:
     On Error GoTo warpB
     ' Ghost N/As
@@ -177,17 +290,24 @@ warpB:
     ' Add Project Info
     Dim projectInfo As PowerPoint.Shape
     With ppSlide
-        oLeft = ppPres.PageSetup.SlideWidth - Application.InchesToPoints(0.5 + 2.2)
+        oLeft = ppPres.PageSetup.SlideWidth - Application.InchesToPoints(0.5 + 3.2)
         oTop = Application.InchesToPoints(0.65)
-        oWidth = Application.InchesToPoints(2.25)
+        oWidth = Application.InchesToPoints(3.25)
         oHeight = Application.InchesToPoints(1)
         Set projectInfo = .Shapes.AddTextbox(msoTextOrientationHorizontal, oLeft, oTop, oWidth, oHeight)
+        
+        Dim clientLocationContractLine As String
+        clientLocationContractLine = sht.ListObjects(TableType.info).Range(TableInfo.ClientLine, 2)
+        If sht.ListObjects(TableType.info).Range(TableInfo.LocationLine, 2) <> "" Then
+            clientLocationContractLine = clientLocationContractLine & " @ " & sht.ListObjects(TableType.info).Range(TableInfo.LocationLine, 2)
+        End If
+        clientLocationContractLine = clientLocationContractLine & " (" & sht.ListObjects(TableType.info).Range(TableInfo.ContractLine, 2) & ")"
         
         Dim pInfo As Variant
         pInfo = Array("PA: " & sht.ListObjects(TableType.info).Range(TableInfo.PALine, 2), _
                         sht.ListObjects(TableType.info).Range(TableInfo.CWELine, 2), _
                         "JES: " & sht.ListObjects(TableType.info).Range(TableInfo.JESLine, 2), _
-                        sht.ListObjects(TableType.info).Range(TableInfo.ClientLine, 2), _
+                        clientLocationContractLine, _
                         "Updated: " & Format(Now, "mm/dd/YY"))
         
         With projectInfo.TextFrame2
@@ -352,9 +472,10 @@ warpB:
                     .Text = sht.ListObjects(TableType.info).Range(TableInfo.WatermarkLine, 2)
                     .Font.Name = "Aptos Black"
                     .Font.Size = 84
+                    .Font.Fill.Transparency = 0.5
                 End With
             End With
-            watermark.Rotation = -20
+            watermark.rotation = -20
             watermark.Left = (ppPres.PageSetup.SlideWidth - watermark.Width) / 2
             watermark.Top = (ppPres.PageSetup.SlideHeight - watermark.Height) / 2
         End With
@@ -362,8 +483,8 @@ warpB:
     
     Application.CutCopyMode = False
     
-    ppSlide.Export Filename:=fPath & "\PDFs\" & sht.Name & ".pdf", FilterName:="PDF"
-    ppSlide.Export Filename:=fPath & "\Images\" & sht.Name & ".jpg", FilterName:="JPG"
+    'ppSlide.Export Filename:=fPath & "\PDFs\" & sht.Name & ".pdf", FilterName:="PDF"
+    'ppSlide.Export Filename:=fPath & "\Images\" & sht.Name & ".jpg", FilterName:="JPG"
     
     Set fso = Nothing
     Set ppApp = Nothing

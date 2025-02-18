@@ -1,8 +1,8 @@
 Attribute VB_Name = "tablesDOD"
 Public Const mod_name As String = "tablesDoD"
 Public Const module_author As String = "Ben Fisher"
-Public Const module_version As String = "1.3"
-Public Const module_date As Date = #4/2/2024#
+Public Const module_version As String = "1.3.9"
+Public Const module_date As Date = #2/13/2024#
 
 Public Const Army = "Army"
 Public Const USN = "Navy"
@@ -10,9 +10,10 @@ Public Const AF = "AF"
 Public Const USMC = "USMC"
 
 Public Const TARGET_INFO = "A2"
-Public Const TARGET_PDT = "A14"
-Public Const TARGET_COMMENTS = "A34"
+Public Const TARGET_PDT = "A16"
+Public Const TARGET_COMMENTS = "A38"
 Public Const TARGET_SCHED = "D2"
+
 
 Public Enum TableInfo
     [_First]
@@ -26,14 +27,16 @@ Public Enum TableInfo
     JESLine = 6
     FundingLine = 7
     ClientLine = 8
-    ContractLine = 9
-    WatermarkLine = 10
+    LocationLine = 9
+    ContractLine = 10
+    WatermarkLine = 11
+    HyperlinkLine = 12
     [_Last]
 End Enum
 
 Private Sub CreateDoDTableStyles()
     Dim ArmyArr As Variant, AFArr As Variant, USNArr As Variant, USMCArr As Variant
-    ArmyArr = Array(3357492, 6648690, 10728899, 3331582)
+    ArmyArr = Array(3357492, 6648690, 10728899, 3331582) 'Header, FirstRow, SecondRow, Highlight
     AFArr = Array(4662044, 15263977, 13816532, 16677632)
     USNArr = Array(5192448, 15263977, 13683910, 1028328)
     USMCArr = Array(2185797, 7646395, 7377836, 3150532)
@@ -91,6 +94,7 @@ Private Sub CreateTableStyle(ByVal styleName As String, ByVal headerColor As Lon
 End Sub
 
 Public Sub HighlightRow()
+Attribute HighlightRow.VB_ProcData.VB_Invoke_Func = "h\n14"
     Application.ScreenUpdating = False
     
     Dim arr As Variant
@@ -146,7 +150,7 @@ Private Sub ApplyTableSecondaryFormats(aTable As ListObject)
     Next
     
     Dim colWidths As Variant
-    colWidths = Array(4, 20, 10, 10, 10)
+    colWidths = Array(4, 20, 15, 15)
     For i = LBound(colWidths) To UBound(colWidths)
         aTable.HeaderRowRange.Columns(i + 1).ColumnWidth = colWidths(i)
     Next
@@ -181,6 +185,67 @@ Public Sub UnhighlightRow()
     Application.ScreenUpdating = True
 End Sub
 
+Public Sub MuteRow()
+Attribute MuteRow.VB_ProcData.VB_Invoke_Func = "m\n14"
+    Application.ScreenUpdating = False
+
+    Dim aTable As ListObject, tableStyleType As String
+    Set aTable = ActiveSheet.ListObjects(4)
+    tableStyleType = ActiveSheet.ListObjects(TableType.info).DataBodyRange(TableInfo.ClientLine - 1, 2)
+    
+    Dim selectStart As Long:  selectStart = Selection(1).Row
+    Dim selectEnd As Long: selectEnd = Selection.Rows.Count + Selection(1).Row - 1
+    
+    Dim tableStyleName As String
+    tableStyleName = LCase(ActiveSheet.ListObjects(4).TableStyle.Name)
+    Debug.Print tableStyleName
+    
+    If tableStyleName = "navy" Or tableStyleName = "af" Then
+        For i = selectStart To selectEnd
+            aTable.DataBodyRange.Rows(i - aTable.DataBodyRange.Row + 1).Font.Color = RGB(192, 192, 192)
+        Next
+    ElseIf tableStyleName = "usmc" Then
+        For i = selectStart To selectEnd
+            With aTable.DataBodyRange.Rows(i - aTable.DataBodyRange.Row + 1)
+                .Font.Color = ContrastText(.Interior.Color, 5928586, 9485769)
+            End With
+        Next
+    Else
+        For i = selectStart To selectEnd
+            With aTable.DataBodyRange.Rows(i - aTable.DataBodyRange.Row + 1)
+                If (i - aTable.DataBodyRange.Row) Mod 2 = 0 Then    'First Row
+                    .Font.Color = 11712952
+                Else 'Secondary Row
+                    .Font.Color = 13753057
+                End If
+            End With
+        Next
+    End If
+    Application.ScreenUpdating = True
+End Sub
+
+Public Sub UnmuteRow()
+
+    Application.ScreenUpdating = False
+    
+    Dim aRng As Range
+    Set aRng = ActiveSheet.ListObjects(TableType.sched).DataBodyRange
+    
+    Dim currentStyle As String
+    currentStyle = Selection.ListObject.TableStyle.Name
+    
+    With Selection.ListObject
+        .Range.ClearFormats
+        .ShowAutoFilterDropDown = False
+        .TableStyle = currentStyle
+    End With
+    
+    ApplyTableSecondaryFormats aRng.ListObject
+    Application.ScreenUpdating = True
+
+End Sub
+
+
 Function AutoincrementTable(baseName As String) As String
     Dim maxIndex As Long
     Dim sht As Worksheet
@@ -199,7 +264,7 @@ Public Sub CreateProjectInfoTable(sht As Worksheet)
     Set target = sht.Range(TARGET_INFO)
 
     Dim arr As Variant
-    arr = Array("Parameter", "Project Name", "P2", "PA", "CWE/ECC", "JES?", "Funding", "Client", "Contract", "Watermark")
+    arr = Array("Parameter", "Project Name", "P2", "PA", "CWE/ECC", "JES?", "Funding", "Client", "Location", "Contract", "Watermark", "PW Link")
     
     target.Resize(UBound(arr) + 1) = WorksheetFunction.Transpose(arr)
     target.Offset(0, 1).Value = "Value"
@@ -302,8 +367,8 @@ Public Sub CreatePDTTable(sht As Worksheet)
 
     Dim arr As Variant
     arr = Array("Role", "TL", "PM", "DM", "A/E", "Civ", "Str", "Arch", _
-                "Mech", "Elec", "FPE", "Cyber", "Env", "Sust", "Cost", _
-                "VE", "TS", "MCX")
+                "Mech", "Elec", "FP", "Comm", "Cyber", "Env", "Sust", "Cost", _
+                "VE", "TS", "MCX", "RO")
     
     target.Resize(UBound(arr) + 1) = WorksheetFunction.Transpose(arr)
     target.Offset(0, 1).Value = "Person"
@@ -481,10 +546,12 @@ Public Sub CreateDBBSchedule(sht As Worksheet)
     Set target = sht.Range(TARGET_SCHED)
 
     Dim arr As Variant
-    arr = Array("ID", "Task", "Mtg or Submittal", "Review Start", "End")
+    'arr = Array("ID", "Task", "Mtg or Submittal", "Review Start", "End")
+    arr = Array("ID", "Task", "Start", "End")
+    
     target.Resize(, UBound(arr) + 1) = arr
     
-    arr = Array("Kickoff", "Charette", "  " & ChrW(9500) & " Draft PDCR", "  " & ChrW(9500) & " Final", "  " & ChrW(9492) & " Backcheck", _
+    arr = Array("Kickoff", "Charette", "  " & ChrW(9500) & " Draft PDCR", "  " & ChrW(9500) & " Final PDCR", "  " & ChrW(9492) & " Backcheck", _
         "Concept", "  " & ChrW(9492) & " OBR", "Intermediate", "  " & ChrW(9492) & " OBR", "Final", "  " & ChrW(9492) & " OBR", "Backcheck", _
         "BCOES Cert", "RTA", "Advertise")
 

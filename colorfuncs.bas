@@ -1,8 +1,8 @@
-Attribute VB_Name = "colorfuncs"
-Private Const mod_name As String = "colorfuncs"
+Attribute VB_Name = "colorFuncs"
+Private Const mod_name As String = "colorFuncs2"
 Private Const module_author As String = "Ben Fisher"
-Private Const module_version As String = "1.0.0"
-Private Const module_update_date As Date = #2/16/2024#
+Private Const module_version As String = "2"
+Private Const module_update_date As Date = #7/20/2026#
 
 Public Function rgb_to_hsl(ByVal rgb_string As String) As Variant
     'Note that pure white and black return errors
@@ -339,6 +339,38 @@ Public Function split_rgb_string(ByVal rgb_string As String) As Variant
     split_rgb_string = rgb_arr
 End Function
 
+Function contrast_text_is_dark(bgColor As Variant) As Boolean
+                         'Based on W3.org visibility recommendations:
+                         'https://www.w3.org/TR/AERT/#color-contrast
+    
+    Dim color_brightness As Double
+    Dim r As Long, g As Long, b As Long
+    
+    b = bgColor \ 65536
+    g = (bgColor - b * 65536) \ 256
+    r = bgColor - b * 65536 - g * 256
+    
+    color_brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    If color_brightness > 0.55 Then contrast_text_is_dark = True
+End Function
+
+Function contrast_text(bgColor As Variant, _
+                      Optional darkColor As Variant = vbBlack, _
+                      Optional lightColor As Variant = vbWhite) As Long
+                      'Based on W3.org visibility recommendations:
+                      'https://www.w3.org/TR/AERT/#color-contrast
+    
+    Dim color_brightness As Double
+    Dim r As Long, g As Long, b As Long
+    
+    b = bgColor \ 65536
+    g = (bgColor - b * 65536) \ 256
+    r = bgColor - b * 65536 - g * 256
+    
+    color_brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    If color_brightness > 0.55 Then contrast_text = darkColor Else contrast_text = lightColor
+End Function
+
 Public Function contrast_text_monochrome(ByVal background_color As Long) As Long
     'Based on W3.org visibility recommendations:
     'https://www.w3.org/TR/AERT/#color-contrast
@@ -354,48 +386,142 @@ Public Function contrast_text_monochrome(ByVal background_color As Long) As Long
     contrast_text_monochrome = color_constant
 End Function
 
+Function contrast_text_colored(bgColor As Variant, _
+                               Optional as_color As Boolean = True, _
+                               Optional light_limit As Double = 90, _
+                               Optional dark_limit As Double = 15, _
+                               Optional flip_limits As Boolean = False)
+    ' Improved version of contrast_text that converts the bgColor to rgb then
+    ' round-trips through HSL, where black is L = 0 and white is L = 100. The
+    ' font color is then determined as the percentages.
+    
+    Dim color_brightness As Double
+    Dim is_font_light As Boolean
+    Dim r As Long, g As Long, b As Long
+    Dim rgb_arr(2) As Long
+    
+    b = bgColor \ 65536
+    g = (bgColor - b * 65536) \ 256
+    r = bgColor - b * 65536 - g * 256
+    
+    rgb_arr(0) = r
+    rgb_arr(1) = g
+    rgb_arr(2) = b
+
+    hsl_arr = rgb_to_hsl(r & ", " & g & ", " & b)
+    
+    color_brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+    
+    If flip_limits Then
+        If color_brightness <= 0.55 Then
+            ' Dark font
+            hsl_arr(2) = dark_limit
+        Else
+            ' Light font
+            hsl_arr(2) = light_limit
+        End If
+    Else
+        If color_brightness > 0.55 Then
+            ' Dark font
+            hsl_arr(2) = dark_limit
+        Else
+            ' Light font
+            hsl_arr(2) = light_limit
+        End If
+    End If
+    
+    new_rgb = hsl_to_rgb(hsl_arr(0) & ", " & hsl_arr(1) & ", " & hsl_arr(2))
+    contrast_text_colored = rgb_to_long(new_rgb)
+    
+End Function
+
+Private Sub color_cells_with_scheme()
+
+    Dim primary_color As Long, secondary_color As Long, accent_color As Long
+    
+    scheme = "blue"
+    Select Case scheme
+        Case Is = "blue"
+            primary_color = DODGERBLUE
+            secondary_color = LIGHTBLUE
+            accent_color = ALICEBLUE
+        Case Is = "green"
+            primary_color = LIMEGREEN
+            secondary_color = PALEGREEN
+            accent_color = HONEYDEW
+        Case Is = "yellow"
+            primary_color = GOLDENROD
+            secondary_color = GOLD
+            accent_color = LEMONCHIFFON
+        Case Is = "red"
+            primary_color = FIREBRICK
+            secondary_color = ORANGERED
+            accent_color = MISTYROSE
+        Case Else
+            primary_color = DARKGRAY
+            secondary_color = GAINSBORO
+            accent_color = WHITESMOKE
+    End Select
+        
+    With Selection
+        .Interior.Color = primary_color
+        .Font.Color = contrast_text_colored(primary_color)
+        .Font.Bold = False
+        With .Offset(0, 1)
+            .Interior.Color = secondary_color
+            .Font.Color = contrast_text_colored(.Interior.Color)
+        End With
+        With .Offset(0, 2)
+            .Interior.Color = accent_color
+            .Font.Color = contrast_text_colored(.Interior.Color)
+        End With
+    End With
+    
+End Sub
+
+
 Public Function grayscale_ratio(color_as_long As Long) As Double
     grayscale_ratio = Trim(Split(long_to_rgb(long_to_grayscale(color_as_long)), ",")(0)) / 255
 End Function
 
-Public Function contrast_text_color(ByVal background_color As Long, Optional pct As Double = 0.65)
-    Dim arr As Variant
-    Dim color_brightness As Double
-    Dim contrast_color As Long
-    
-    rgb_string = long_to_rgb(background_color)
-    arr = split_rgb_string(rgb_string)
-    color_brightness = (0.299 * arr(0) + 0.587 * arr(1) + 0.114 * arr(2)) / 255
-    If color_brightness > 0.55 Then
-        ' Light background, shade font color
-        contrast_text_color = alpha_shade(pct, rgb_string)
-    Else
-        ' Dark background, tint font color
-        contrast_text_color = alpha_tint(pct + 0.1, rgb_string)
-    End If
-    
-End Function
+'Public Function contrast_text_color(ByVal background_color As Long, Optional pct As Double = 0.65)
+'    Dim arr As Variant
+'    Dim color_brightness As Double
+'    Dim contrast_color As Long
+'
+'    rgb_string = long_to_rgb(background_color)
+'    arr = split_rgb_string(rgb_string)
+'    color_brightness = (0.299 * arr(0) + 0.587 * arr(1) + 0.114 * arr(2)) / 255
+'    If color_brightness > 0.55 Then
+'        ' Light background, shade font color
+'        contrast_text_color = alpha_shade(pct, rgb_string)
+'    Else
+'        ' Dark background, tint font color
+'        contrast_text_color = alpha_tint(pct + 0.1, rgb_string)
+'    End If
+'
+'End Function
 
-Public Sub colorAndContrast()
-    Dim bgColor As Long, fColor As Long, aCell As Range
-
-    Application.Calculation = xlCalculationManual
-    Application.EnableEvents = False
-    Application.ScreenUpdating = False
-    
-    For Each aCell In Selection
-        With aCell
-            bgColor = rgb_to_long(aCell.Value)
-            fColor = rgb_to_long(contrast_text_color(bgColor))
-            aCell.Interior.Color = bgColor
-            aCell.Font.Color = fColor
-        End With
-    Next aCell
-
-    Application.Calculation = xlCalculationAutomatic
-    Application.EnableEvents = True
-    Application.ScreenUpdating = True
-End Sub
+'Private Sub colorAndContrast()
+'    Dim bgColor As Long, fColor As Long, aCell As Range
+'
+'    Application.Calculation = xlCalculationManual
+'    Application.EnableEvents = False
+'    Application.ScreenUpdating = False
+'
+'    For Each aCell In Selection
+'        With aCell
+'            bgColor = rgb_to_long(aCell.Value)
+'            fColor = rgb_to_long(contrast_text_color(bgColor))
+'            aCell.Interior.Color = bgColor
+'            aCell.Font.Color = fColor
+'        End With
+'    Next aCell
+'
+'    Application.Calculation = xlCalculationAutomatic
+'    Application.EnableEvents = True
+'    Application.ScreenUpdating = True
+'End Sub
 
 Public Function rgb_to_grayscale(rgb_string As String) As Long
     rgb_to_grayscale = long_to_grayscale(rgb_to_long(rgb_string))
@@ -478,13 +604,12 @@ Public Sub color_selection_rgb()
     Next
 End Sub
 
-Public Sub color_selection_hex()
-    'Helper function for coloring Excel cells that contain an Hex code
-    Dim hex_string As String
+Public Sub color_selection_long()
+    'Helper function for coloring Excel cells that contain an RGB code
+    Dim long_string As String
     For Each a_cell In Selection.Cells
         If a_cell <> "" Then
-            hex_string = a_cell.Value
-            back_color = rgb_to_long(hex_to_rgb(hex_string))
+            back_color = CLng(a_cell.Value)
             font_color = contrast_text_monochrome(back_color)
             With a_cell
                 .Interior.Color = back_color
@@ -494,7 +619,23 @@ Public Sub color_selection_hex()
     Next
 End Sub
 
-Public Sub color_selection_hsb()
+Public Sub color_selection_hex()
+    'Helper function for coloring Excel cells that contain an HSB code
+    Dim hsb_string As String
+    For Each a_cell In Selection.Cells
+        If a_cell <> "" Then
+            hsb_string = a_cell.Value
+            back_color = rgb_to_long(hsb_to_rgb(hsb_string))
+            font_color = contrast_text_monochrome(back_color)
+            With a_cell
+                .Interior.Color = back_color
+                .Font.Color = font_color
+            End With
+        End If
+    Next
+End Sub
+
+Private Sub color_selection_hsb()
     'Helper function for coloring Excel cells that contain an HSB code
     Dim hsb_string As String
     For Each a_cell In Selection.Cells
